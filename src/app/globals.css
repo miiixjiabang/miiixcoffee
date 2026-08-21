@@ -48,3 +48,30 @@ input[type="number"]::-webkit-outer-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+/* Safe area for iPhone */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  /* Ensure touch targets are at least 44px */
+  button, a, input, select {
+    min-height: 36px;
+  }
+  
+  /* Improve form inputs on mobile */
+  input[type="number"],
+  input[type="date"],
+  select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Prevent iOS zoom on input focus */
+@supports (-webkit-touch-callout: none) {
+  input, select, textarea {
+    font-size: 16px;
+  }
+}

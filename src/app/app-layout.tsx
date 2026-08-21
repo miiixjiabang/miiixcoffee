@@ -116,8 +116,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t" style={{ borderColor: '#E5E5E5' }}>
-        <div className="flex justify-around items-center h-16 max-w-lg mx-auto">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t safe-area-bottom" style={{ borderColor: '#E5E5E5' }}>
+        <div className="flex justify-around items-center h-16 max-w-lg mx-auto px-1">
           {filteredNav.map(item => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
             const badge = item.icon === 'alert' && alertCount > 0 ? alertCount : 0;
@@ -125,19 +125,20 @@ export default function AppLayout({ children }: AppLayoutProps) {
               <button
                 key={item.href}
                 onClick={() => router.push(item.href)}
-                className="flex flex-col items-center gap-0.5 px-2 py-1 relative"
+                className="flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 py-1 relative"
+                style={{ minHeight: '44px' }}
               >
-                {getIcon(item.icon, `w-5 h-5 ${isActive ? '' : ''}`)}
-                <span className="text-xs" style={{ color: isActive ? '#E86825' : '#999', fontWeight: isActive ? 600 : 400 }}>
+                {getIcon(item.icon, `w-6 h-6 ${isActive ? '' : ''}`)}
+                <span className="text-[10px] truncate max-w-full px-0.5" style={{ color: isActive ? '#E86825' : '#999', fontWeight: isActive ? 600 : 400 }}>
                   {item.label}
                 </span>
                 {badge > 0 && (
-                  <span className="absolute -top-0.5 right-0 w-4 h-4 rounded-full text-white text-xs flex items-center justify-center" style={{ background: '#EF4444', fontSize: '10px' }}>
+                  <span className="absolute top-0 right-1/4 w-4 h-4 rounded-full text-white text-[10px] flex items-center justify-center" style={{ background: '#EF4444' }}>
                     {badge > 9 ? '9+' : badge}
                   </span>
                 )}
                 {isActive && (
-                  <div className="absolute -top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full" style={{ background: '#E86825' }} />
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full" style={{ background: '#E86825' }} />
                 )}
               </button>
             );

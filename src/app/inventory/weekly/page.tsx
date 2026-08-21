@@ -276,16 +276,18 @@ export default function WeeklyInventoryPage() {
                         {data.waste_comparison
                           .filter(w => w.category === cat)
                           .map(w => (
-                            <div key={w.material_id} className="flex items-center justify-between px-4 py-2.5">
-                              <div className="flex-1 min-w-0">
-                                <span className="text-sm" style={{ color: '#1A1A1A' }}>{w.material_name}</span>
-                                <span className="text-xs ml-1" style={{ color: '#999' }}>{w.unit}</span>
+                            <div key={w.material_id} className="px-4 py-3">
+                              <div className="flex items-center justify-between mb-1.5">
+                                <div className="flex-1 min-w-0">
+                                  <span className="text-sm font-medium" style={{ color: '#1A1A1A' }}>{w.material_name}</span>
+                                  <span className="text-xs ml-1" style={{ color: '#999' }}>{w.unit}</span>
+                                </div>
+                                <span className="text-sm font-bold" style={{ color: '#E86825' }}>消耗 {w.theoretical_consumption}</span>
                               </div>
-                              <div className="flex items-center gap-3 text-xs">
-                                <span style={{ color: '#999' }}>期初 {w.opening_stock}</span>
-                                <span style={{ color: '#999' }}>进货 +{w.weekly_purchases}</span>
-                                <span style={{ color: '#E86825' }}>消耗 {w.theoretical_consumption}</span>
-                                <span style={{ color: '#999' }}>期末 {w.daily_closing_stock}</span>
+                              <div className="flex items-center gap-4 text-xs" style={{ color: '#666' }}>
+                                <span>期初 {w.opening_stock}</span>
+                                <span>进货 +{w.weekly_purchases}</span>
+                                <span>期末 {w.daily_closing_stock}</span>
                               </div>
                             </div>
                           ))}
