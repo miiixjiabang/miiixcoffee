@@ -1,0 +1,271 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import AppLayout from '../app-layout';
+
+interface SummaryItem {
+  date: string;
+  total_amount: number;
+  total_consumption: number;
+  items: number;
+}
+
+interface TrendItem {
+  material_id: number;
+  name: string;
+  category: string;
+  data: Record<string, number>;
+}
+
+export default function ReportsPage() {
+  const [type, setType] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [summary, setSummary] = useState<SummaryItem[]>([]);
+  const [trend, setTrend] = useState<TrendItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [recordsCount, setRecordsCount] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+
+  useEffect(() => {
+    // Set default date range (last 30 days)
+    const end = new Date().toISOString().split('T')[0];
+    const start = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
+    setStartDate(start);
+    setEndDate(end);
+  }, []);
+
+  useEffect(() => {
+    if (startDate && endDate) {
+      loadReports();
+    }
+  }, [type, startDate, endDate]);
+
+  const loadReports = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/reports?type=${type}&start_date=${startDate}&end_date=${endDate}`);
+      const data = await res.json();
+      setSummary(data.summary || []);
+      setTrend(data.trend || []);
+      setRecordsCount(data.records_count || 0);
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const categories = Array.from(new Set(trend.map(t => t.category)));
+  const filteredTrend = selectedCategory
+    ? trend.filter(t => t.category === selectedCategory)
+    : trend;
+
+  // Calculate totals
+  const totalAmount = summary.reduce((sum, s) => sum + s.total_amount, 0);
+  const totalConsumption = summary.reduce((sum, s) => sum + s.total_consumption, 0);
+  const avgAmount = summary.length > 0 ? totalAmount / summary.length : 0;
+
+  // Chart data for simple bar chart
+  const maxAmount = Math.max(...summary.map(s => s.total_amount), 1);
+
+  return (
+    <AppLayout>
+      <div className="px-4 py-4 space-y-4">
+        <h1 className="text-lg font-bold" style={{ color: '#1A1A1A' }}>报表中心</h1>
+
+        {/* Type Selector */}
+        <div className="flex gap-2">
+          {(['daily', 'weekly', 'monthly'] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => setType(t)}
+              className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors"
+              style={{
+                background: type === t ? '#E86825' : '#F5F5F5',
+                color: type === t ? '#fff' : '#666',
+              }}
+            >
+              {t === 'daily' ? '日报' : t === 'weekly' ? '周报' : '月报'}
+            </button>
+          ))}
+        </div>
+
+        {/* Date Range */}
+        <div className="bg-white rounded-xl p-4 shadow-sm" style={{ border: '1px solid #F0F0F0' }}>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs mb-1" style={{ color: '#666' }}>开始日期</label>
+              <input
+                type={type === 'monthly' ? 'month' : 'date'}
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+                style={{ borderColor: '#E5E5E5' }}
+              />
+            </div>
+            <div>
+              <label className="block text-xs mb-1" style={{ color: '#666' }}>结束日期</label>
+              <input
+                type={type === 'monthly' ? 'month' : 'date'}
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+                style={{ borderColor: '#E5E5E5' }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center h-32">
+            <div className="animate-spin w-6 h-6 border-2 rounded-full" style={{ borderColor: '#E5E5E5', borderTopColor: '#E86825' }} />
+          </div>
+        ) : recordsCount === 0 ? (
+          <div className="bg-white rounded-xl p-8 text-center shadow-sm" style={{ border: '1px solid #F0F0F0' }}>
+            <p className="text-sm" style={{ color: '#999' }}>该时间段暂无盘点数据</p>
+          </div>
+        ) : (
+          <>
+            {/* Summary Cards */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-white rounded-xl p-3 shadow-sm text-center" style={{ border: '1px solid #F0F0F0' }}>
+                <div className="text-xs" style={{ color: '#999' }}>总库存金额</div>
+                <div className="text-base font-bold mt-1" style={{ color: '#E86825' }}>¥{totalAmount.toFixed(0)}</div>
+              </div>
+              <div className="bg-white rounded-xl p-3 shadow-sm text-center" style={{ border: '1px solid #F0F0F0' }}>
+                <div className="text-xs" style={{ color: '#999' }}>总消耗金额</div>
+                <div className="text-base font-bold mt-1" style={{ color: '#3B82F6' }}>¥{totalConsumption.toFixed(0)}</div>
+              </div>
+              <div className="bg-white rounded-xl p-3 shadow-sm text-center" style={{ border: '1px solid #F0F0F0' }}>
+                <div className="text-xs" style={{ color: '#999' }}>平均金额</div>
+                <div className="text-base font-bold mt-1" style={{ color: '#22C55E' }}>¥{avgAmount.toFixed(0)}</div>
+              </div>
+            </div>
+
+            {/* Bar Chart */}
+            <div className="bg-white rounded-xl p-4 shadow-sm" style={{ border: '1px solid #F0F0F0' }}>
+              <div className="text-sm font-semibold mb-3" style={{ color: '#333' }}>库存金额趋势</div>
+              <div className="flex items-end gap-1 h-32">
+                {summary.map((item, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                    <div
+                      className="w-full rounded-t transition-all"
+                      style={{
+                        height: `${Math.max((item.total_amount / maxAmount) * 100, 4)}%`,
+                        background: `linear-gradient(to top, #E86825, #F5A623)`,
+                        minWidth: '8px',
+                      }}
+                      title={`${item.date}: ¥${item.total_amount.toFixed(2)}`}
+                    />
+                    <span className="text-xs truncate w-full text-center" style={{ color: '#999', fontSize: '9px' }}>
+                      {item.date.slice(-5)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Consumption Chart */}
+            <div className="bg-white rounded-xl p-4 shadow-sm" style={{ border: '1px solid #F0F0F0' }}>
+              <div className="text-sm font-semibold mb-3" style={{ color: '#333' }}>消耗金额趋势</div>
+              <div className="flex items-end gap-1 h-32">
+                {summary.map((item, i) => {
+                  const maxCon = Math.max(...summary.map(s => s.total_consumption), 1);
+                  return (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                      <div
+                        className="w-full rounded-t transition-all"
+                        style={{
+                          height: `${Math.max((item.total_consumption / maxCon) * 100, 4)}%`,
+                          background: `linear-gradient(to top, #3B82F6, #93C5FD)`,
+                          minWidth: '8px',
+                        }}
+                        title={`${item.date}: ¥${item.total_consumption.toFixed(2)}`}
+                      />
+                      <span className="text-xs truncate w-full text-center" style={{ color: '#999', fontSize: '9px' }}>
+                        {item.date.slice(-5)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Daily Detail Table */}
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden" style={{ border: '1px solid #F0F0F0' }}>
+              <div className="px-4 py-3" style={{ borderBottom: '1px solid #F0F0F0' }}>
+                <span className="text-sm font-semibold" style={{ color: '#333' }}>每日明细</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr style={{ background: '#FAFAFA' }}>
+                      <th className="px-3 py-2 text-left font-medium" style={{ color: '#666' }}>日期</th>
+                      <th className="px-3 py-2 text-right font-medium" style={{ color: '#666' }}>库存金额</th>
+                      <th className="px-3 py-2 text-right font-medium" style={{ color: '#666' }}>消耗金额</th>
+                      <th className="px-3 py-2 text-right font-medium" style={{ color: '#666' }}>物料数</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y" style={{ borderColor: '#F5F5F5' }}>
+                    {summary.map((item, i) => (
+                      <tr key={i}>
+                        <td className="px-3 py-2" style={{ color: '#333' }}>{item.date}</td>
+                        <td className="px-3 py-2 text-right" style={{ color: '#E86825' }}>¥{item.total_amount.toFixed(2)}</td>
+                        <td className="px-3 py-2 text-right" style={{ color: '#3B82F6' }}>¥{item.total_consumption.toFixed(2)}</td>
+                        <td className="px-3 py-2 text-right" style={{ color: '#666' }}>{item.items}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Material Consumption */}
+            {filteredTrend.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden" style={{ border: '1px solid #F0F0F0' }}>
+                <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid #F0F0F0' }}>
+                  <span className="text-sm font-semibold" style={{ color: '#333' }}>物料消耗排行</span>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="text-xs px-2 py-1 rounded border outline-none bg-white"
+                    style={{ borderColor: '#E5E5E5' }}
+                  >
+                    <option value="">全部分类</option>
+                    {categories.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="divide-y" style={{ borderColor: '#F5F5F5' }}>
+                  {filteredTrend
+                    .map(t => ({
+                      ...t,
+                      totalCon: Object.values(t.data).reduce((s, v) => s + v, 0),
+                    }))
+                    .sort((a, b) => b.totalCon - a.totalCon)
+                    .slice(0, 20)
+                    .map((item, i) => (
+                      <div key={item.material_id} className="px-4 py-2.5 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs w-5 text-center" style={{ color: '#999' }}>{i + 1}</span>
+                          <div>
+                            <span className="text-sm" style={{ color: '#333' }}>{item.name}</span>
+                            <span className="text-xs ml-1.5" style={{ color: '#999' }}>{item.category}</span>
+                          </div>
+                        </div>
+                        <span className="text-sm font-medium" style={{ color: '#E86825' }}>
+                          {item.totalCon.toFixed(1)}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </AppLayout>
+  );
+}
