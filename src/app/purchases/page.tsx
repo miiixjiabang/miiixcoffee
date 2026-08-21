@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import AppLayout from '../app-layout';
+import { getToken } from '@/lib/api';
 
 interface Material {
   id: number;
@@ -34,7 +35,11 @@ export default function PurchasesPage() {
   const [filterDate, setFilterDate] = useState('');
 
   useEffect(() => {
-    fetch('/api/materials').then(r => r.json()).then(data => {
+    const token = getToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    
+    fetch('/api/materials', { headers }).then(r => r.json()).then(data => {
       setMaterials(data.materials || []);
     }).catch(() => {}).finally(() => setLoading(false));
     loadPurchases();
@@ -67,9 +72,12 @@ export default function PurchasesPage() {
 
     setSaving(true);
     try {
+      const saveHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+      const token = getToken();
+      if (token) saveHeaders['Authorization'] = `Bearer ${token}`;
       const res = await fetch('/api/purchases', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: saveHeaders,
         body: JSON.stringify({
           material_id: parseInt(materialId),
           purchase_date: date,

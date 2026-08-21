@@ -11,7 +11,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch('/api/auth/logout', { method: 'POST' });
+    // Check if already logged in
+    const token = localStorage.getItem('miiix_token');
+    if (token) {
+      window.location.href = '/dashboard';
+      return;
+    }
+    // Clear any stale session
+    fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -28,7 +35,9 @@ export default function LoginPage() {
 
       const data = await res.json();
       if (res.ok) {
-        router.push('/dashboard');
+        localStorage.setItem('miiix_token', data.token);
+        localStorage.setItem('miiix_user', JSON.stringify(data.user));
+        window.location.href = '/dashboard';
       } else {
         setError(data.error || '登录失败');
       }

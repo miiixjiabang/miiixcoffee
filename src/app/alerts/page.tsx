@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import AppLayout from '../app-layout';
+import { getToken } from '@/lib/api';
 
 interface ThresholdItem {
   id: number;
@@ -25,13 +26,23 @@ export default function AlertsPage() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
+    const token = getToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     Promise.all([
-      fetch('/api/alerts').then(r => r.json()),
-      fetch('/api/auth/logout', { method: 'GET' }).then(r => r.json()),
-    ]).then(([alertData, userData]) => {
+      fetch('/api/alerts', { headers }).then(r => r.json()),
+      fetch('/api/alerts', { headers }).then(r => r.json()),
+    ]).then(([alertData, _]) => {
       setThresholds(alertData.thresholds || []);
       setAlertCount(alertData.alert_count || 0);
-      setIsAdmin(userData.user?.role === 'admin');
+      // Check user role from localStorage
+      try {
+        const user = JSON.parse(localStorage.getItem('miiix_user') || '{}');
+        setIsAdmin(user.role === 'admin');
+      } catch {
+        setIsAdmin(false);
+      }
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
@@ -43,9 +54,12 @@ export default function AlertsPage() {
     }
 
     try {
+      const saveHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+      const token = getToken();
+      if (token) saveHeaders['Authorization'] = `Bearer ${token}`;
       const res = await fetch('/api/alerts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: saveHeaders,
         body: JSON.stringify({ material_id: materialId, threshold: value }),
       });
 
@@ -53,7 +67,10 @@ export default function AlertsPage() {
         setMessage('阈值已更新');
         setEditingId(null);
         // Reload
-        const data = await fetch('/api/alerts').then(r => r.json());
+        const reloadHeaders: Record<string, string> = {};
+        const t = getToken();
+        if (t) reloadHeaders['Authorization'] = `Bearer ${t}`;
+        const data = await fetch('/api/alerts', { headers: reloadHeaders }).then(r => r.json());
         setThresholds(data.thresholds || []);
         setAlertCount(data.alert_count || 0);
       }

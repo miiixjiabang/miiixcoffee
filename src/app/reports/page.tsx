@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import AppLayout from '../app-layout';
+import { getToken } from '@/lib/api';
 
 interface SummaryItem {
   date: string;
@@ -47,7 +48,9 @@ export default function ReportsPage() {
   const loadReports = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/reports?type=${type}&start_date=${startDate}&end_date=${endDate}`);
+      const res = await fetch(`/api/reports?type=${type}&start_date=${startDate}&end_date=${endDate}`, {
+        headers: getToken() ? { 'Authorization': `Bearer ${getToken()}` } : {}
+      });
       const data = await res.json();
       setSummary(data.summary || []);
       setTrend(data.trend || []);
@@ -139,7 +142,9 @@ export default function ReportsPage() {
                   if (!weekStart) return;
                   setWasteLoading(true);
                   try {
-                    const res = await fetch(`/api/inventory/weekly?week_start=${weekStart}`);
+                    const res = await fetch(`/api/inventory/weekly?week_start=${weekStart}`, {
+        headers: getToken() ? { 'Authorization': `Bearer ${getToken()}` } : {}
+      });
                     const data = await res.json();
                     setWasteData(data);
                   } catch {

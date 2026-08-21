@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import AppLayout from '../../app-layout';
+import { getToken } from '@/lib/api';
 
 interface Material {
   id: number;
@@ -67,7 +68,9 @@ export default function WeeklyInventoryPage() {
     if (!weekStart) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/inventory/weekly?week_start=${weekStart}`);
+      const res = await fetch(`/api/inventory/weekly?week_start=${weekStart}`, {
+        headers: getToken() ? { 'Authorization': `Bearer ${getToken()}` } : {}
+      });
       const result = await res.json();
       if (res.ok) {
         setData(result);
@@ -128,9 +131,12 @@ export default function WeeklyInventoryPage() {
 
     setSaving(true);
     try {
+      const token = getToken();
+      const saveHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) saveHeaders['Authorization'] = `Bearer ${token}`;
       const res = await fetch('/api/inventory/weekly', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: saveHeaders,
         body: JSON.stringify({ week_start: weekStart, items: itemsList }),
       });
       const result = await res.json();

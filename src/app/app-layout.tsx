@@ -49,30 +49,36 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const [alertCount, setAlertCount] = useState(0);
 
   useEffect(() => {
-    fetch('/api/auth/logout', { method: 'GET' })
-      .then(res => {
-        if (res.status === 401) {
-          router.push('/login');
-          return;
-        }
-        return res.json();
-      })
-      .then(data => {
-        if (data?.user) {
-          setUser(data.user);
-          // Check alerts
-          fetch('/api/alerts').then(r => r.json()).then(d => {
-            setAlertCount(d.alert_count || 0);
-          }).catch(() => {});
-        }
-      })
-      .catch(() => router.push('/login'))
-      .finally(() => setLoading(false));
+    const token = localStorage.getItem('miiix_token');
+    const userData = localStorage.getItem('miiix_user');
+    
+    if (!token || !userData) {
+      router.push('/login');
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(userData) as User;
+      setUser(parsed);
+      
+      // Check alerts
+      fetch('/api/alerts', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).then(r => r.json()).then(d => {
+        setAlertCount(d.alert_count || 0);
+      }).catch(() => {});
+    } catch {
+      router.push('/login');
+    } finally {
+      setLoading(false);
+    }
   }, [router]);
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/login');
+    localStorage.removeItem('miiix_token');
+    localStorage.removeItem('miiix_user');
+    window.location.href = '/login';
   };
 
   if (loading) {

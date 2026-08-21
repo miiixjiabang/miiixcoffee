@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import AppLayout from '../app-layout';
+import { getToken } from '@/lib/api';
 
 interface AlertItem {
   material_id: number;
@@ -27,10 +28,14 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const token = getToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     Promise.all([
-      fetch('/api/alerts').then(r => r.json()),
-      fetch('/api/inventory?type=daily').then(r => r.json()),
-      fetch('/api/inventory?type=monthly').then(r => r.json()),
+      fetch('/api/alerts', { headers }).then(r => r.json()),
+      fetch('/api/inventory?type=daily', { headers }).then(r => r.json()),
+      fetch('/api/inventory?type=monthly', { headers }).then(r => r.json()),
     ]).then(([alertData, dailyData, monthlyData]) => {
       setAlerts(alertData.alerts || []);
       setRecentDaily((dailyData.records || []).slice(0, 5));

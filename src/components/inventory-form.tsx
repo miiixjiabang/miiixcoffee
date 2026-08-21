@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { getToken } from '@/lib/api';
 
 interface Material {
   id: number;
@@ -46,14 +47,19 @@ export default function InventoryForm({ type, title, dateLabel, datePlaceholder 
   const loadMaterials = useCallback(async () => {
     const isDaily = type === 'daily' || type === 'weekly';
     const url = `/api/materials?type=${isDaily ? 'daily' : ''}`;
-    const res = await fetch(url);
+    const res = await fetch(url, {
+      headers: getToken() ? { 'Authorization': `Bearer ${getToken()}` } : {}
+    });
     const data = await res.json();
     setMaterials(data.materials || []);
     setLoading(false);
   }, [type]);
 
   const loadRecord = useCallback(async (recordDate: string) => {
-    const res = await fetch(`/api/inventory?type=${type}&date=${recordDate}`);
+    const headers: Record<string, string> = {};
+    const token = getToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`/api/inventory?type=${type}&date=${recordDate}`, { headers });
     const data = await res.json();
     if (data.items && data.items.length > 0) {
       const itemMap = new Map<number, number>();
@@ -121,9 +127,12 @@ export default function InventoryForm({ type, title, dateLabel, datePlaceholder 
 
     setSaving(true);
     try {
+      const saveHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+      const token = getToken();
+      if (token) saveHeaders['Authorization'] = `Bearer ${token}`;
       const res = await fetch('/api/inventory', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: saveHeaders,
         body: JSON.stringify({
           record_type: type,
           record_date: date,
