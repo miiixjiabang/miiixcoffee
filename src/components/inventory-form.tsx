@@ -199,39 +199,73 @@ export default function InventoryForm({ type, title, dateLabel, datePlaceholder 
       {/* Date Picker */}
       <div className="bg-white rounded-xl p-4 shadow-sm" style={{ border: '1px solid #F0F0F0' }}>
         <label className="block text-xs font-medium mb-1.5" style={{ color: '#666' }}>{dateLabel}</label>
-        <input
-          type={type === 'monthly' ? 'month' : type === 'weekly' ? 'text' : 'date'}
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          placeholder={datePlaceholder}
-          className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none"
-          style={{ borderColor: '#E5E5E5' }}
-        />
-        {type === 'weekly' && !date && (
-          <button
-            onClick={() => setDate(getTodayDate())}
-            className="mt-2 text-xs px-3 py-1.5 rounded-lg"
-            style={{ background: '#F5F5F5', color: '#1A1A1A' }}
-          >
-            使用当前周 ({getTodayDate()})
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          <input
+            type={type === 'monthly' ? 'month' : type === 'weekly' ? 'text' : 'date'}
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            placeholder={datePlaceholder}
+            className="flex-1 px-3 py-2.5 rounded-lg border text-sm outline-none"
+            style={{ borderColor: '#E5E5E5' }}
+          />
+          {(type === 'daily') && (
+            <button
+              onClick={() => setDate(getTodayDate())}
+              className="px-3 py-2.5 rounded-lg text-xs font-medium whitespace-nowrap"
+              style={{ background: '#F5F5F5', color: '#1A1A1A' }}
+            >
+              今天
+            </button>
+          )}
+          {type === 'weekly' && (
+            <button
+              onClick={() => setDate(getTodayDate())}
+              className="px-3 py-2.5 rounded-lg text-xs font-medium whitespace-nowrap"
+              style={{ background: '#F5F5F5', color: '#1A1A1A' }}
+            >
+              本周
+            </button>
+          )}
+          {type === 'monthly' && (
+            <button
+              onClick={() => setDate(getTodayDate())}
+              className="px-3 py-2.5 rounded-lg text-xs font-medium whitespace-nowrap"
+              style={{ background: '#F5F5F5', color: '#1A1A1A' }}
+            >
+              本月
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Search */}
       <div className="bg-white rounded-xl p-3 shadow-sm" style={{ border: '1px solid #F0F0F0' }}>
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="搜索物料名称..."
-          className="w-full px-3 py-2 rounded-lg text-sm outline-none"
-          style={{ background: '#F5F5F5', border: 'none' }}
-        />
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="搜索物料名称..."
+            className="flex-1 px-3 py-2.5 rounded-lg text-sm outline-none"
+            style={{ background: '#F5F5F5', border: 'none' }}
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="px-2 py-2.5 text-xs rounded-lg"
+              style={{ color: '#999' }}
+            >
+              清除
+            </button>
+          )}
+        </div>
+        <div className="mt-1.5 text-xs" style={{ color: '#999' }}>
+          共 {materials.length} 项物料，{searchTerm ? `搜索"${searchTerm}"` : '点击分类展开录入'}
+        </div>
       </div>
 
-      {/* Materials by Category */}
-      {date && filteredCategories.map(category => {
+      {/* Materials by Category - always visible */}
+      {filteredCategories.map(category => {
         const categoryMaterials = materials
           .filter(m => m.category === category && (!searchTerm || m.name.includes(searchTerm)))
           .sort((a, b) => a.sort_order - b.sort_order);
@@ -301,19 +335,24 @@ export default function InventoryForm({ type, title, dateLabel, datePlaceholder 
         );
       })}
 
-      {/* Save Button */}
-      {date && (
-        <div className="sticky bottom-20 z-10">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="w-full py-3.5 rounded-xl text-white font-medium text-sm shadow-lg disabled:opacity-50 transition-opacity"
-            style={{ background: '#1A1A1A' }}
-          >
-            {saving ? '保存中...' : '保存盘点数据'}
-          </button>
+      {/* Date Reminder */}
+      {!date && filteredCategories.length > 0 && (
+        <div className="px-4 py-3 rounded-xl text-sm" style={{ background: '#F5F5F5', color: '#666' }}>
+          请先选择日期，再录入库存数量并保存
         </div>
       )}
+
+      {/* Save Button */}
+      <div className={`sticky z-10 ${date ? 'bottom-20' : 'hidden'}`}>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full py-3.5 rounded-xl text-white font-medium text-sm shadow-lg disabled:opacity-50 transition-opacity"
+          style={{ background: '#1A1A1A' }}
+        >
+          {saving ? '保存中...' : '保存盘点数据'}
+        </button>
+      </div>
 
       {/* Message */}
       {message && (
