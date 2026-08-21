@@ -78,7 +78,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-2 rounded-full" style={{ borderColor: '#E5E5E5', borderTopColor: '#E86825' }} />
+        <div className="animate-spin w-8 h-8 border-2 rounded-full" style={{ borderColor: '#E5E5E5', borderTopColor: '#1A1A1A' }} />
       </div>
     );
   }
@@ -93,7 +93,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <header className="sticky top-0 z-50 bg-white shadow-sm" style={{ borderBottom: '1px solid #E5E5E5' }}>
         <div className="flex items-center justify-between px-4 h-14">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#E86825' }}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#1A1A1A' }}>
               <span className="text-white font-bold text-sm">M</span>
             </div>
             <span className="font-bold text-base" style={{ color: '#1A1A1A' }}>Miiix Coffee</span>
@@ -129,7 +129,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 style={{ minHeight: '44px' }}
               >
                 {getIcon(item.icon, `w-6 h-6 ${isActive ? '' : ''}`)}
-                <span className="text-[10px] truncate max-w-full px-0.5" style={{ color: isActive ? '#E86825' : '#999', fontWeight: isActive ? 600 : 400 }}>
+                <span className="text-[10px] truncate max-w-full px-0.5" style={{ color: isActive ? '#1A1A1A' : '#999', fontWeight: isActive ? 600 : 400 }}>
                   {item.label}
                 </span>
                 {badge > 0 && (
@@ -138,7 +138,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   </span>
                 )}
                 {isActive && (
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full" style={{ background: '#E86825' }} />
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full" style={{ background: '#1A1A1A' }} />
                 )}
               </button>
             );

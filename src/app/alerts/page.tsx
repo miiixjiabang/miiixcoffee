@@ -73,7 +73,7 @@ export default function AlertsPage() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin w-8 h-8 border-2 rounded-full" style={{ borderColor: '#E5E5E5', borderTopColor: '#E86825' }} />
+          <div className="animate-spin w-8 h-8 border-2 rounded-full" style={{ borderColor: '#E5E5E5', borderTopColor: '#1A1A1A' }} />
         </div>
       </AppLayout>
     );
@@ -98,7 +98,7 @@ export default function AlertsPage() {
             onClick={() => setFilter('alert')}
             className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors"
             style={{
-              background: filter === 'alert' ? '#E86825' : '#F5F5F5',
+              background: filter === 'alert' ? '#1A1A1A' : '#F5F5F5',
               color: filter === 'alert' ? '#fff' : '#666',
             }}
           >
@@ -108,7 +108,7 @@ export default function AlertsPage() {
             onClick={() => setFilter('all')}
             className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors"
             style={{
-              background: filter === 'all' ? '#E86825' : '#F5F5F5',
+              background: filter === 'all' ? '#1A1A1A' : '#F5F5F5',
               color: filter === 'all' ? '#fff' : '#666',
             }}
           >
@@ -163,7 +163,7 @@ export default function AlertsPage() {
                             setEditValue(String(item.threshold));
                           }}
                           className="text-xs px-2 py-1 rounded"
-                          style={{ background: '#FFF7ED', color: '#E86825' }}
+                          style={{ background: '#F5F5F5', color: '#1A1A1A' }}
                         >
                           设置
                         </button>
@@ -184,7 +184,7 @@ export default function AlertsPage() {
                         <button
                           onClick={() => handleSaveThreshold(item.material_id)}
                           className="text-xs px-3 py-1.5 rounded text-white"
-                          style={{ background: '#E86825' }}
+                          style={{ background: '#1A1A1A' }}
                         >
                           保存
                         </button>

@@ -198,21 +198,21 @@ export default function WeeklyInventoryPage() {
           <button
             onClick={() => setActiveTab('summary')}
             className={`flex-1 py-2 text-xs font-medium rounded-md transition-colors ${activeTab === 'summary' ? 'bg-white shadow-sm' : ''}`}
-            style={{ color: activeTab === 'summary' ? '#E86825' : '#666' }}
+            style={{ color: activeTab === 'summary' ? '#1A1A1A' : '#666' }}
           >
             自动汇总
           </button>
           <button
             onClick={() => setActiveTab('manual')}
             className={`flex-1 py-2 text-xs font-medium rounded-md transition-colors ${activeTab === 'manual' ? 'bg-white shadow-sm' : ''}`}
-            style={{ color: activeTab === 'manual' ? '#E86825' : '#666' }}
+            style={{ color: activeTab === 'manual' ? '#1A1A1A' : '#666' }}
           >
             手动盘点
           </button>
           <button
             onClick={() => setActiveTab('waste')}
             className={`flex-1 py-2 text-xs font-medium rounded-md transition-colors ${activeTab === 'waste' ? 'bg-white shadow-sm' : ''}`}
-            style={{ color: activeTab === 'waste' ? '#E86825' : '#666' }}
+            style={{ color: activeTab === 'waste' ? '#1A1A1A' : '#666' }}
           >
             损耗对比
             {data?.has_weekly_count && data.summary.total_waste !== 0 && (
@@ -234,7 +234,7 @@ export default function WeeklyInventoryPage() {
 
         {loading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin w-8 h-8 border-2 rounded-full" style={{ borderColor: '#E5E5E5', borderTopColor: '#E86825' }} />
+            <div className="animate-spin w-8 h-8 border-2 rounded-full" style={{ borderColor: '#E5E5E5', borderTopColor: '#1A1A1A' }} />
           </div>
         ) : !data ? (
           <div className="text-center py-12 text-sm" style={{ color: '#999' }}>请选择周次</div>
@@ -251,7 +251,7 @@ export default function WeeklyInventoryPage() {
                   </div>
                   <div className="bg-white rounded-xl p-3 shadow-sm text-center" style={{ border: '1px solid #F0F0F0' }}>
                     <div className="text-xs" style={{ color: '#999' }}>理论消耗</div>
-                    <div className="text-lg font-bold" style={{ color: '#E86825' }}>{data.summary.total_theoretical_consumption.toFixed(1)}</div>
+                    <div className="text-lg font-bold" style={{ color: '#1A1A1A' }}>{data.summary.total_theoretical_consumption.toFixed(1)}</div>
                   </div>
                   <div className="bg-white rounded-xl p-3 shadow-sm text-center" style={{ border: '1px solid #F0F0F0' }}>
                     <div className="text-xs" style={{ color: '#999' }}>周盘状态</div>
@@ -282,7 +282,7 @@ export default function WeeklyInventoryPage() {
                                   <span className="text-sm font-medium" style={{ color: '#1A1A1A' }}>{w.material_name}</span>
                                   <span className="text-xs ml-1" style={{ color: '#999' }}>{w.unit}</span>
                                 </div>
-                                <span className="text-sm font-bold" style={{ color: '#E86825' }}>消耗 {w.theoretical_consumption}</span>
+                                <span className="text-sm font-bold" style={{ color: '#1A1A1A' }}>消耗 {w.theoretical_consumption}</span>
                               </div>
                               <div className="flex items-center gap-4 text-xs" style={{ color: '#666' }}>
                                 <span>期初 {w.opening_stock}</span>
@@ -344,7 +344,7 @@ export default function WeeklyInventoryPage() {
                   onClick={handleSaveManual}
                   disabled={saving}
                   className="w-full py-3 rounded-xl text-sm font-medium text-white transition-opacity disabled:opacity-50"
-                  style={{ backgroundColor: '#E86825' }}
+                  style={{ backgroundColor: '#1A1A1A' }}
                 >
                   {saving ? '保存中...' : data.has_weekly_count ? '更新周盘数据' : '保存周盘数据'}
                 </button>
@@ -418,7 +418,7 @@ export default function WeeklyInventoryPage() {
                                   </td>
                                   <td className="px-2 py-2 text-right" style={{ color: '#666' }}>{w.opening_stock}</td>
                                   <td className="px-2 py-2 text-right" style={{ color: '#666' }}>{w.weekly_purchases}</td>
-                                  <td className="px-2 py-2 text-right" style={{ color: '#E86825' }}>{w.theoretical_consumption}</td>
+                                  <td className="px-2 py-2 text-right" style={{ color: '#1A1A1A' }}>{w.theoretical_consumption}</td>
                                   <td className="px-2 py-2 text-right" style={{ color: '#666' }}>{w.actual_weekly_qty ?? '-'}</td>
                                   <td className="px-2 py-2 text-right" style={{ color: '#1A1A1A' }}>{w.actual_consumption?.toFixed(1) ?? '-'}</td>
                                   <td className={`px-2 py-2 text-right font-medium ${

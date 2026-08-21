@@ -8,7 +8,7 @@
 
 - **Framework**: Next.js 16 (App Router)
 - **Core**: React 19, TypeScript 5
-- **UI**: Tailwind CSS 4, 自定义组件 (橙色主题 #E86825)
+- **UI**: Tailwind CSS 4, 自定义组件 (黑白色系 #1A1A1A)
 - **Database**: Supabase (PostgreSQL)
 - **Auth**: 自定义 Cookie/Token 认证
 

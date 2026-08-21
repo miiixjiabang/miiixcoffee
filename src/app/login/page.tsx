@@ -40,14 +40,15 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #E86825 0%, #F5A623 100%)' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1A1A1A 0%, #555555 100%)' }}>
       <div className="w-full max-w-sm mx-4">
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ background: '#E86825' }}>
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ background: '#1A1A1A' }}>
               <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
               </svg>
+              <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-6 h-1.5 bg-white rounded-full" style={{ opacity: 0.3 }} />
             </div>
             <h1 className="text-2xl font-bold" style={{ color: '#1A1A1A' }}>Miiix Coffee</h1>
             <p className="text-sm mt-1" style={{ color: '#666' }}>物料盘点管理系统</p>
@@ -90,7 +91,7 @@ export default function LoginPage() {
               type="submit"
               disabled={loading}
               className="w-full py-3 rounded-lg text-white font-medium text-sm transition-opacity disabled:opacity-50"
-              style={{ background: '#E86825' }}
+              style={{ background: '#1A1A1A' }}
             >
               {loading ? '登录中...' : '登 录'}
             </button>

@@ -108,7 +108,7 @@ export default function PurchasesPage() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin w-8 h-8 border-2 rounded-full" style={{ borderColor: '#E5E5E5', borderTopColor: '#E86825' }} />
+          <div className="animate-spin w-8 h-8 border-2 rounded-full" style={{ borderColor: '#E5E5E5', borderTopColor: '#1A1A1A' }} />
         </div>
       </AppLayout>
     );
@@ -181,7 +181,7 @@ export default function PurchasesPage() {
           </div>
 
           {quantity && unitPrice && (
-            <div className="text-right text-sm" style={{ color: '#E86825' }}>
+            <div className="text-right text-sm" style={{ color: '#1A1A1A' }}>
               合计: ¥{(parseFloat(quantity || '0') * parseFloat(unitPrice || '0')).toFixed(2)}
             </div>
           )}
@@ -190,7 +190,7 @@ export default function PurchasesPage() {
             onClick={handleSave}
             disabled={saving}
             className="w-full py-3 rounded-xl text-white font-medium text-sm disabled:opacity-50"
-            style={{ background: '#E86825' }}
+            style={{ background: '#1A1A1A' }}
           >
             {saving ? '保存中...' : '保存进货记录'}
           </button>
@@ -206,7 +206,7 @@ export default function PurchasesPage() {
             style={{ borderColor: '#E5E5E5' }}
           />
           {filterDate && (
-            <button onClick={() => setFilterDate('')} className="text-xs px-2" style={{ color: '#E86825' }}>
+            <button onClick={() => setFilterDate('')} className="text-xs px-2" style={{ color: '#1A1A1A' }}>
               清除
             </button>
           )}
@@ -235,7 +235,7 @@ export default function PurchasesPage() {
                   <div className="flex items-center justify-between text-xs" style={{ color: '#666' }}>
                     <span>{p.purchase_date} | {p.materials?.category}</span>
                     <span>
-                      {p.quantity} x ¥{parseFloat(p.unit_price).toFixed(2)} = <span style={{ color: '#E86825' }}>¥{parseFloat(p.total_amount).toFixed(2)}</span>
+                      {p.quantity} x ¥{parseFloat(p.unit_price).toFixed(2)} = <span style={{ color: '#1A1A1A' }}>¥{parseFloat(p.total_amount).toFixed(2)}</span>
                     </span>
                   </div>
                 </div>

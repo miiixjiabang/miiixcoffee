@@ -85,7 +85,7 @@ export default function ReportsPage() {
               onClick={() => setType(t)}
               className="flex-1 py-2 rounded-lg text-sm font-medium transition-colors"
               style={{
-                background: type === t ? '#E86825' : '#F5F5F5',
+                background: type === t ? '#1A1A1A' : '#F5F5F5',
                 color: type === t ? '#fff' : '#666',
               }}
             >
@@ -150,7 +150,7 @@ export default function ReportsPage() {
                 }}
                 disabled={!weekStart || wasteLoading}
                 className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity disabled:opacity-50"
-                style={{ backgroundColor: '#E86825' }}
+                style={{ backgroundColor: '#1A1A1A' }}
               >
                 {wasteLoading ? '查询中...' : '查询'}
               </button>
@@ -206,7 +206,7 @@ export default function ReportsPage() {
                               <tr key={w.material_id} className={w.waste && Math.abs(w.waste) > 0.5 ? 'bg-red-50/50' : ''}>
                                 <td className="px-2 py-1.5 text-left" style={{ color: '#1A1A1A' }}>{w.material_name}</td>
                                 <td className="px-2 py-1.5 text-right" style={{ color: '#999' }}>{w.category}</td>
-                                <td className="px-2 py-1.5 text-right" style={{ color: '#E86825' }}>{w.theoretical_consumption}</td>
+                                <td className="px-2 py-1.5 text-right" style={{ color: '#1A1A1A' }}>{w.theoretical_consumption}</td>
                                 <td className="px-2 py-1.5 text-right" style={{ color: '#1A1A1A' }}>{w.actual_consumption?.toFixed(1) ?? '-'}</td>
                                 <td className={`px-2 py-1.5 text-right font-medium ${
                                   w.waste && w.waste > 0.5 ? 'text-red-500' :
@@ -233,7 +233,7 @@ export default function ReportsPage() {
 
         {loading ? (
           <div className="flex items-center justify-center h-32">
-            <div className="animate-spin w-6 h-6 border-2 rounded-full" style={{ borderColor: '#E5E5E5', borderTopColor: '#E86825' }} />
+            <div className="animate-spin w-6 h-6 border-2 rounded-full" style={{ borderColor: '#E5E5E5', borderTopColor: '#1A1A1A' }} />
           </div>
         ) : recordsCount === 0 ? (
           <div className="bg-white rounded-xl p-8 text-center shadow-sm" style={{ border: '1px solid #F0F0F0' }}>
@@ -245,7 +245,7 @@ export default function ReportsPage() {
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-white rounded-xl p-3 shadow-sm text-center" style={{ border: '1px solid #F0F0F0' }}>
                 <div className="text-xs" style={{ color: '#999' }}>总库存金额</div>
-                <div className="text-base font-bold mt-1" style={{ color: '#E86825' }}>¥{totalAmount.toFixed(0)}</div>
+                <div className="text-base font-bold mt-1" style={{ color: '#1A1A1A' }}>¥{totalAmount.toFixed(0)}</div>
               </div>
               <div className="bg-white rounded-xl p-3 shadow-sm text-center" style={{ border: '1px solid #F0F0F0' }}>
                 <div className="text-xs" style={{ color: '#999' }}>总消耗金额</div>
@@ -267,7 +267,7 @@ export default function ReportsPage() {
                       className="w-full rounded-t transition-all"
                       style={{
                         height: `${Math.max((item.total_amount / maxAmount) * 100, 4)}%`,
-                        background: `linear-gradient(to top, #E86825, #F5A623)`,
+                        background: `linear-gradient(to top, #1A1A1A, #666666)`,
                         minWidth: '8px',
                       }}
                       title={`${item.date}: ¥${item.total_amount.toFixed(2)}`}
@@ -325,7 +325,7 @@ export default function ReportsPage() {
                     {summary.map((item, i) => (
                       <tr key={i}>
                         <td className="px-3 py-2" style={{ color: '#333' }}>{item.date}</td>
-                        <td className="px-3 py-2 text-right" style={{ color: '#E86825' }}>¥{item.total_amount.toFixed(2)}</td>
+                        <td className="px-3 py-2 text-right" style={{ color: '#1A1A1A' }}>¥{item.total_amount.toFixed(2)}</td>
                         <td className="px-3 py-2 text-right" style={{ color: '#3B82F6' }}>¥{item.total_consumption.toFixed(2)}</td>
                         <td className="px-3 py-2 text-right" style={{ color: '#666' }}>{item.items}</td>
                       </tr>
@@ -369,7 +369,7 @@ export default function ReportsPage() {
                             <span className="text-xs ml-1.5" style={{ color: '#999' }}>{item.category}</span>
                           </div>
                         </div>
-                        <span className="text-sm font-medium" style={{ color: '#E86825' }}>
+                        <span className="text-sm font-medium" style={{ color: '#1A1A1A' }}>
                           {item.totalCon.toFixed(1)}
                         </span>
                       </div>

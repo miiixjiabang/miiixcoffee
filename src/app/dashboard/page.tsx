@@ -42,7 +42,7 @@ export default function DashboardPage() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin w-8 h-8 border-2 rounded-full" style={{ borderColor: '#E5E5E5', borderTopColor: '#E86825' }} />
+          <div className="animate-spin w-8 h-8 border-2 rounded-full" style={{ borderColor: '#E5E5E5', borderTopColor: '#1A1A1A' }} />
         </div>
       </AppLayout>
     );
@@ -56,8 +56,8 @@ export default function DashboardPage() {
         {/* Quick Actions */}
         <div className="grid grid-cols-3 gap-3">
           <a href="/inventory/daily" className="bg-white rounded-xl p-4 text-center shadow-sm" style={{ border: '1px solid #F0F0F0' }}>
-            <div className="w-10 h-10 mx-auto mb-2 rounded-lg flex items-center justify-center" style={{ background: '#FFF7ED' }}>
-              <svg className="w-5 h-5" style={{ color: '#E86825' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 mx-auto mb-2 rounded-lg flex items-center justify-center" style={{ background: '#F5F5F5' }}>
+              <svg className="w-5 h-5" style={{ color: '#1A1A1A' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
@@ -89,7 +89,7 @@ export default function DashboardPage() {
                 <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#EF4444' }} />
                 <span className="text-sm font-semibold" style={{ color: '#1A1A1A' }}>库存预警</span>
               </div>
-              <a href="/alerts" className="text-xs" style={{ color: '#E86825' }}>查看全部</a>
+              <a href="/alerts" className="text-xs" style={{ color: '#1A1A1A' }}>查看全部</a>
             </div>
             <div className="divide-y" style={{ borderColor: '#F5F5F5' }}>
               {alerts.slice(0, 5).map((alert, i) => (
@@ -115,8 +115,8 @@ export default function DashboardPage() {
             <span className="text-xs" style={{ color: '#999' }}>{today}</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <a href="/purchases" className="p-3 rounded-lg" style={{ background: '#FFF7ED' }}>
-              <div className="text-lg font-bold" style={{ color: '#E86825' }}>进货登记</div>
+            <a href="/purchases" className="p-3 rounded-lg" style={{ background: '#F5F5F5' }}>
+              <div className="text-lg font-bold" style={{ color: '#1A1A1A' }}>进货登记</div>
               <div className="text-xs mt-0.5" style={{ color: '#999' }}>记录今日进货</div>
             </a>
             <a href="/alerts" className="p-3 rounded-lg" style={{ background: alerts.length > 0 ? '#FEF2F2' : '#F0FDF4' }}>
@@ -140,7 +140,7 @@ export default function DashboardPage() {
               {recentDaily.map(record => (
                 <a key={record.id} href={`/inventory/daily?date=${record.record_date}`} className="px-4 py-3 flex items-center justify-between">
                   <span className="text-sm" style={{ color: '#333' }}>{record.record_date}</span>
-                  <span className="text-sm font-medium" style={{ color: '#E86825' }}>
+                  <span className="text-sm font-medium" style={{ color: '#1A1A1A' }}>
                     ¥{parseFloat(record.total_amount || '0').toFixed(2)}
                   </span>
                 </a>
@@ -160,7 +160,7 @@ export default function DashboardPage() {
               {recentMonthly.map(record => (
                 <a key={record.id} href={`/inventory/monthly?date=${record.record_date}`} className="px-4 py-3 flex items-center justify-between">
                   <span className="text-sm" style={{ color: '#333' }}>{record.record_date}</span>
-                  <span className="text-sm font-medium" style={{ color: '#E86825' }}>
+                  <span className="text-sm font-medium" style={{ color: '#1A1A1A' }}>
                     ¥{parseFloat(record.total_amount || '0').toFixed(2)}
                   </span>
                 </a>

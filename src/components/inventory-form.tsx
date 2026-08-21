@@ -170,7 +170,7 @@ export default function InventoryForm({ type, title, dateLabel, datePlaceholder 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-2 rounded-full" style={{ borderColor: '#E5E5E5', borderTopColor: '#E86825' }} />
+        <div className="animate-spin w-8 h-8 border-2 rounded-full" style={{ borderColor: '#E5E5E5', borderTopColor: '#1A1A1A' }} />
       </div>
     );
   }
@@ -181,7 +181,7 @@ export default function InventoryForm({ type, title, dateLabel, datePlaceholder 
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-bold" style={{ color: '#1A1A1A' }}>{title}</h1>
         {totalAmount > 0 && (
-          <span className="text-sm font-medium" style={{ color: '#E86825' }}>
+          <span className="text-sm font-medium" style={{ color: '#1A1A1A' }}>
             库存金额: ¥{totalAmount.toFixed(2)}
           </span>
         )}
@@ -202,7 +202,7 @@ export default function InventoryForm({ type, title, dateLabel, datePlaceholder 
           <button
             onClick={() => setDate(getTodayDate())}
             className="mt-2 text-xs px-3 py-1.5 rounded-lg"
-            style={{ background: '#FFF7ED', color: '#E86825' }}
+            style={{ background: '#F5F5F5', color: '#1A1A1A' }}
           >
             使用当前周 ({getTodayDate()})
           </button>
@@ -272,7 +272,7 @@ export default function InventoryForm({ type, title, dateLabel, datePlaceholder 
                         min="0"
                       />
                       {price > 0 && qty > 0 && (
-                        <span className="text-xs font-medium whitespace-nowrap" style={{ color: '#E86825' }}>
+                        <span className="text-xs font-medium whitespace-nowrap" style={{ color: '#1A1A1A' }}>
                           ¥{(qty * price).toFixed(2)}
                         </span>
                       )}
@@ -280,7 +280,7 @@ export default function InventoryForm({ type, title, dateLabel, datePlaceholder 
                     {savedItem && savedItem.consumption !== undefined && savedItem.consumption > 0 && (
                       <div className="mt-1.5 flex items-center gap-3 text-xs" style={{ color: '#666' }}>
                         <span>昨日: {savedItem.prev_quantity}</span>
-                        <span>消耗: <span style={{ color: '#E86825' }}>{savedItem.consumption}</span></span>
+                        <span>消耗: <span style={{ color: '#1A1A1A' }}>{savedItem.consumption}</span></span>
                         <span>消耗额: ¥{savedItem.consumption_amount?.toFixed(2)}</span>
                       </div>
                     )}
@@ -299,7 +299,7 @@ export default function InventoryForm({ type, title, dateLabel, datePlaceholder 
             onClick={handleSave}
             disabled={saving}
             className="w-full py-3.5 rounded-xl text-white font-medium text-sm shadow-lg disabled:opacity-50 transition-opacity"
-            style={{ background: '#E86825' }}
+            style={{ background: '#1A1A1A' }}
           >
             {saving ? '保存中...' : '保存盘点数据'}
           </button>
