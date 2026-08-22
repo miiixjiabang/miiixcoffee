@@ -62,8 +62,11 @@ export const inventoryRecords = pgTable(
     record_type: varchar("record_type", { length: 20 }).notNull(), // 'daily' | 'weekly' | 'monthly'
     record_date: varchar("record_date", { length: 20 }).notNull(), // 'YYYY-MM-DD' or 'YYYY-Www' or 'YYYY-MM'
     total_amount: numeric("total_amount", { precision: 12, scale: 2 }),
+    status: varchar("status", { length: 20 }).notNull().default('pending'), // 'pending' | 'approved'
     created_by: integer("created_by").notNull().references(() => users.id),
     created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    approved_by: integer("approved_by").references(() => users.id),
+    approved_at: timestamp("approved_at", { withTimezone: true }),
   },
   (table) => [
     index("inventory_records_store_id_idx").on(table.store_id),

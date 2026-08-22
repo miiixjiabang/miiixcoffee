@@ -11,8 +11,25 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const type = searchParams.get('type') || 'daily';
     const date = searchParams.get('date');
+    const status = searchParams.get('status');
 
     const db = getDb();
+
+    // Status-based filtering (for pending review count)
+    if (status) {
+      let query = db
+        .from('inventory_records')
+        .select('id, record_type, record_date, total_amount, status, created_at', { count: 'exact' })
+        .eq('store_id', 1)
+        .eq('status', status);
+
+      if (type) query = query.eq('record_type', type);
+
+      const { data, error, count } = await query.order('created_at', { ascending: false });
+
+      if (error) throw new Error(`查询失败: ${error.message}`);
+      return NextResponse.json({ records: data || [], total: count || 0 });
+    }
 
     if (date) {
       // Get specific record
@@ -65,13 +82,31 @@ export async function POST(req: NextRequest) {
     if (!session) return NextResponse.json({ error: '未登录' }, { status: 401 });
 
     const { record_type, record_date, items } = await req.json();
-    // items: { material_id, quantity }[]
 
     if (!record_type || !record_date || !items || items.length === 0) {
       return NextResponse.json({ error: '参数不完整' }, { status: 400 });
     }
 
     const db = getDb();
+
+    // Check if existing record is approved (staff cannot modify approved records)
+    const { data: existing } = await db
+      .from('inventory_records')
+      .select('id, status')
+      .eq('store_id', 1)
+      .eq('record_type', record_type)
+      .eq('record_date', record_date)
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      const existingRecord = existing[0];
+      if (existingRecord.status === 'approved' && session.role !== 'admin') {
+        return NextResponse.json({ error: '该记录已审核归档，无法修改' }, { status: 403 });
+      }
+    }
+
+    // Set status: admin saves as 'approved', staff saves as 'pending'
+    const status = session.role === 'admin' ? 'approved' : 'pending';
 
     // Get materials for price lookup
     const materialIds = items.map((i: { material_id: number }) => i.material_id);
@@ -144,14 +179,6 @@ export async function POST(req: NextRequest) {
     });
 
     // Check if record exists for this date, update or insert
-    const { data: existing } = await db
-      .from('inventory_records')
-      .select('id')
-      .eq('store_id', 1)
-      .eq('record_type', record_type)
-      .eq('record_date', record_date)
-      .limit(1);
-
     let recordId: number;
 
     if (existing && existing.length > 0) {
@@ -159,7 +186,7 @@ export async function POST(req: NextRequest) {
       // Update record
       const { error: uErr } = await db
         .from('inventory_records')
-        .update({ total_amount: Math.round(totalAmount * 100) / 100 })
+        .update({ total_amount: Math.round(totalAmount * 100) / 100, status })
         .eq('id', recordId);
       if (uErr) throw new Error(`更新记录失败: ${uErr.message}`);
 
@@ -177,6 +204,7 @@ export async function POST(req: NextRequest) {
           store_id: 1,
           record_type,
           record_date,
+          status,
           total_amount: Math.round(totalAmount * 100) / 100,
           created_by: session.id,
         })

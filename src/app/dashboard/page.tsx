@@ -19,12 +19,15 @@ interface InventoryRecord {
   record_date: string;
   total_amount: string;
   created_at: string;
+  status: string;
 }
 
 export default function DashboardPage() {
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [recentDaily, setRecentDaily] = useState<InventoryRecord[]>([]);
   const [recentMonthly, setRecentMonthly] = useState<InventoryRecord[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [userRole, setUserRole] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,14 +35,22 @@ export default function DashboardPage() {
     const headers: Record<string, string> = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
+    // Get user role from token
+    const userStr = localStorage.getItem('miiix_user');
+    if (userStr) {
+      try { setUserRole(JSON.parse(userStr).role); } catch {}
+    }
+
     Promise.all([
       fetch('/api/alerts', { headers }).then(r => r.json()),
       fetch('/api/inventory?type=daily', { headers }).then(r => r.json()),
       fetch('/api/inventory?type=monthly', { headers }).then(r => r.json()),
-    ]).then(([alertData, dailyData, monthlyData]) => {
+      fetch('/api/inventory?status=pending', { headers }).then(r => r.json()),
+    ]).then(([alertData, dailyData, monthlyData, pendingData]) => {
       setAlerts(alertData.alerts || []);
       setRecentDaily((dailyData.records || []).slice(0, 5));
       setRecentMonthly((monthlyData.records || []).slice(0, 5));
+      setPendingCount(pendingData.total || (pendingData.records || []).length || 0);
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
@@ -132,6 +143,24 @@ export default function DashboardPage() {
             </a>
           </div>
         </div>
+
+        {/* Pending Review - Admin Only */}
+        {userRole === 'admin' && pendingCount > 0 && (
+          <a href="/inventory/daily" className="block bg-white rounded-xl p-4 shadow-sm" style={{ border: '1px solid #FEF3C7', background: '#FFFBEB' }}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5" style={{ color: '#D97706' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <span className="text-sm font-semibold" style={{ color: '#92400E' }}>待审核盘点记录</span>
+              </div>
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold" style={{ background: '#F59E0B', color: '#FFF' }}>
+                {pendingCount}
+              </span>
+            </div>
+            <div className="text-xs mt-1" style={{ color: '#B45309' }}>点击查看并审核</div>
+          </a>
+        )}
 
         {/* Recent Records */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden" style={{ border: '1px solid #F0F0F0' }}>

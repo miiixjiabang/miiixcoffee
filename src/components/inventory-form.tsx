@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getToken } from '@/lib/api';
+import { getToken, getUser } from '@/lib/api';
 
 interface Material {
   id: number;
@@ -29,6 +29,11 @@ interface InventoryRecord {
   record_date: string;
   total_amount: number;
   created_at: string;
+  status: string;
+  created_by?: number;
+  approved_by?: number | null;
+  approved_at?: string | null;
+  users?: { display_name: string };
 }
 
 interface InventoryFormProps {
@@ -183,7 +188,9 @@ export default function InventoryForm({ type, title, dateLabel }: InventoryFormP
       });
 
       if (res.ok) {
-        setMessage({ type: 'success', text: '保存成功！' });
+        const data = await res.json();
+        const statusText = data.status === 'pending' ? '已提交，等待店长审核' : '已归档';
+        setMessage({ type: 'success', text: `保存成功！${statusText}` });
         loadExistingRecord(date);
       } else {
         const data = await res.json();
@@ -453,6 +460,14 @@ export default function InventoryForm({ type, title, dateLabel }: InventoryFormP
             <div className="text-xs flex-1" style={{ color: '#999' }}>
               已保存 {existingRecord.created_at.slice(0, 10)}
               {existingRecord.total_amount > 0 && ` · ¥${existingRecord.total_amount}`}
+              <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium"
+                style={{
+                  background: existingRecord.status === 'approved' ? '#F0FDF4' : (existingRecord.status === 'pending' ? '#FFF7ED' : '#F0F0F0'),
+                  color: existingRecord.status === 'approved' ? '#166534' : (existingRecord.status === 'pending' ? '#9A3412' : '#666'),
+                }}
+              >
+                {existingRecord.status === 'approved' ? '✓ 已归档' : existingRecord.status === 'pending' ? '⏳ 待审核' : existingRecord.status || '草稿'}
+              </span>
             </div>
           )}
           <button
