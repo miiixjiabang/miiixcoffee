@@ -9,8 +9,6 @@ export default function MonthlyInventoryPage() {
       <InventoryForm
         type="monthly"
         title="月盘录入"
-        dateLabel="盘点月份"
-        datePlaceholder="选择月份"
       />
     </AppLayout>
   );

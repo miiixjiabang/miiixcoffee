@@ -8,371 +8,463 @@ interface Material {
   name: string;
   category: string;
   unit: string;
-  price: string | null;
+  price: number | null;
   is_daily: boolean;
-  sort_order: number;
 }
 
 interface InventoryItem {
   material_id: number;
   quantity: number;
-  unit_price?: number;
+  unit_price?: number | null;
   amount?: number;
   prev_quantity?: number;
   consumption?: number;
   consumption_amount?: number;
-  material_name?: string;
-  category?: string;
-  unit?: string;
+  materials?: { name: string; unit: string; category: string; price?: number | null };
+}
+
+interface InventoryRecord {
+  id: number;
+  record_type: string;
+  record_date: string;
+  total_amount: number;
+  created_at: string;
 }
 
 interface InventoryFormProps {
   type: 'daily' | 'weekly' | 'monthly';
   title: string;
-  dateLabel: string;
-  datePlaceholder: string;
+  dateLabel?: string;
 }
 
-export default function InventoryForm({ type, title, dateLabel, datePlaceholder }: InventoryFormProps) {
+export default function InventoryForm({ type, title, dateLabel }: InventoryFormProps) {
   const [materials, setMaterials] = useState<Material[]>([]);
-  const [date, setDate] = useState('');
-  const [items, setItems] = useState<Map<number, number>>(new Map());
-  const [savedItems, setSavedItems] = useState<InventoryItem[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [quantities, setQuantities] = useState<Record<number, string>>({});
+  const [date, setDate] = useState(() => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  });
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState('');
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const tabRef = useRef<HTMLDivElement>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [existingRecord, setExistingRecord] = useState<InventoryRecord | null>(null);
+  const [existingItems, setExistingItems] = useState<InventoryItem[]>([]);
+  const [purchases, setPurchases] = useState<Record<number, number>>({});
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const loadMaterials = useCallback(async () => {
-    const isDaily = type === 'daily' || type === 'weekly';
-    const url = `/api/materials?type=${isDaily ? 'daily' : ''}`;
-    const res = await fetch(url, {
-      headers: getToken() ? { 'Authorization': `Bearer ${getToken()}` } : {}
-    });
-    const data = await res.json();
-    setMaterials(data.materials || []);
-    setLoading(false);
-  }, [type]);
-
-  const loadRecord = useCallback(async (recordDate: string) => {
-    const headers: Record<string, string> = {};
-    const token = getToken();
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    const res = await fetch(`/api/inventory?type=${type}&date=${recordDate}`, { headers });
-    const data = await res.json();
-    if (data.items && data.items.length > 0) {
-      const itemMap = new Map<number, number>();
-      const saved: InventoryItem[] = [];
-      data.items.forEach((item: Record<string, unknown>) => {
-        itemMap.set(item.material_id as number, parseFloat(item.quantity as string));
-        const mat = item.materials as { name: string; category: string; unit: string } | null;
-        saved.push({
-          material_id: item.material_id as number,
-          quantity: parseFloat(item.quantity as string),
-          unit_price: item.unit_price ? parseFloat(item.unit_price as string) : undefined,
-          amount: item.amount ? parseFloat(item.amount as string) : undefined,
-          prev_quantity: item.prev_quantity ? parseFloat(item.prev_quantity as string) : undefined,
-          consumption: item.consumption ? parseFloat(item.consumption as string) : undefined,
-          consumption_amount: item.consumption_amount ? parseFloat(item.consumption_amount as string) : undefined,
-          material_name: mat?.name || '',
-          category: mat?.category || '',
-          unit: mat?.unit || '',
-        });
-      });
-      setItems(itemMap);
-      setSavedItems(saved);
-      setTotalAmount(data.record?.total_amount ? parseFloat(data.record.total_amount) : 0);
-    } else {
-      setItems(new Map());
-      setSavedItems([]);
-      setTotalAmount(0);
-    }
-  }, [type]);
-
+  // Load materials
   useEffect(() => {
-    loadMaterials();
-  }, [loadMaterials]);
+    const token = getToken();
+    if (!token) return;
+    
+    const materialType = type === 'monthly' ? '' : 'daily';
+    const url = materialType ? `/api/materials?type=${materialType}` : '/api/materials';
+
+    setLoading(true);
+    fetch(url, { headers: { 'Authorization': `Bearer ${token}` } })
+      .then(res => res.json())
+      .then(data => {
+        const list = data.materials || [];
+        setMaterials(list);
+        const cats = [...new Set(list.map((m: Material) => m.category))] as string[];
+        setCategories(cats);
+        if (cats.length > 0) setSelectedCategory(cats[0]);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [type]);
+
+  // Load existing record
+  const loadExistingRecord = useCallback(async (selectedDate: string) => {
+    const token = getToken();
+    if (!token || !selectedDate) return;
+
+    try {
+      const res = await fetch(`/api/inventory?type=${type}&date=${selectedDate}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.record) {
+        setExistingRecord(data.record);
+        setExistingItems(data.items || []);
+        const qtyMap: Record<number, string> = {};
+        (data.items || []).forEach((item: InventoryItem) => {
+          qtyMap[item.material_id] = String(item.quantity);
+        });
+        setQuantities(qtyMap);
+      } else {
+        setExistingRecord(null);
+        setExistingItems([]);
+        setQuantities({});
+      }
+    } catch {}
+  }, [type]);
+
+  // Load purchases for the week
+  const loadPurchases = useCallback(async (selectedDate: string) => {
+    if (type !== 'weekly') return;
+    const token = getToken();
+    if (!token || !selectedDate) return;
+
+    try {
+      const res = await fetch(`/api/purchases?start_date=${selectedDate}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      const purchaseMap: Record<number, number> = {};
+      (data.purchases || []).forEach((p: any) => {
+        purchaseMap[p.material_id] = (purchaseMap[p.material_id] || 0) + p.quantity;
+      });
+      setPurchases(purchaseMap);
+    } catch {}
+  }, [type]);
 
   useEffect(() => {
     if (date) {
-      loadRecord(date);
+      loadExistingRecord(date);
+      loadPurchases(date);
     }
-  }, [date, loadRecord]);
+  }, [date, loadExistingRecord, loadPurchases]);
 
-  // Auto-select first category when materials load
-  useEffect(() => {
-    if (materials.length > 0 && !selectedCategory) {
-      const cats = Array.from(new Set(materials.map(m => m.category)));
-      setSelectedCategory(cats[0]);
-    }
-  }, [materials, selectedCategory]);
+  const getItemData = useCallback((materialId: number) => {
+    return existingItems.find(item => item.material_id === materialId);
+  }, [existingItems]);
 
-  const handleQuantityChange = (materialId: number, value: string) => {
-    const num = value === '' ? 0 : parseFloat(value);
-    setItems(prev => {
-      const next = new Map(prev);
-      next.set(materialId, isNaN(num) ? 0 : num);
-      return next;
-    });
-    setMessage('');
+  const filteredMaterials = materials.filter(m => {
+    const matchesSearch = !searchTerm || m.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = !selectedCategory || m.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const getCategoryCount = (category: string) => {
+    return materials.filter(m => m.category === category).length;
   };
 
   const handleSave = async () => {
     if (!date) {
-      setMessage('请选择日期');
+      setMessage({ type: 'error', text: '请先选择日期' });
       return;
     }
 
-    const itemsList = Array.from(items.entries())
-      .filter(([, qty]) => qty > 0)
-      .map(([material_id, quantity]) => ({ material_id, quantity }));
-
-    if (itemsList.length === 0) {
-      setMessage('请至少录入一项物料数量');
-      return;
-    }
+    const token = getToken();
+    if (!token) return;
 
     setSaving(true);
+    setMessage(null);
+
+    const items = materials
+      .filter(m => quantities[m.id] && quantities[m.id] !== '0')
+      .map(m => ({
+        material_id: m.id,
+        quantity: parseFloat(quantities[m.id]) || 0,
+      }));
+
+    if (items.length === 0) {
+      setMessage({ type: 'error', text: '请至少录入一项物料数量' });
+      setSaving(false);
+      return;
+    }
+
     try {
-      const saveHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
-      const token = getToken();
-      if (token) saveHeaders['Authorization'] = `Bearer ${token}`;
+      const body = type === 'weekly'
+        ? { week_start: date, items }
+        : { record_type: type, record_date: date, items };
+
       const res = await fetch('/api/inventory', {
         method: 'POST',
-        headers: saveHeaders,
-        body: JSON.stringify({
-          record_type: type,
-          record_date: date,
-          items: itemsList,
-        }),
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(body),
       });
 
-      const data = await res.json();
       if (res.ok) {
-        setMessage('保存成功!');
-        setTotalAmount(data.total_amount);
-        loadRecord(date);
+        setMessage({ type: 'success', text: '保存成功！' });
+        loadExistingRecord(date);
       } else {
-        setMessage(data.error || '保存失败');
+        const data = await res.json();
+        setMessage({ type: 'error', text: data.error || '保存失败' });
       }
     } catch {
-      setMessage('网络错误');
+      setMessage({ type: 'error', text: '网络错误' });
     } finally {
       setSaving(false);
+      setTimeout(() => setMessage(null), 3000);
     }
   };
 
-  // Group materials by category
-  const categories = Array.from(new Set(materials.map(m => m.category)));
-  const filteredCategories = searchTerm
-    ? categories.filter(cat =>
-        materials.some(m => m.category === cat && m.name.includes(searchTerm))
-      )
-    : categories;
-
-  // Current category materials
-  const currentMaterials = materials
-    .filter(m => m.category === selectedCategory && (!searchTerm || m.name.includes(searchTerm)))
-    .sort((a, b) => a.sort_order - b.sort_order);
-
-  const getTodayDate = () => {
-    if (type === 'weekly') {
-      const now = new Date();
-      const year = now.getFullYear();
-      const week = Math.ceil(((now.getTime() - new Date(year, 0, 1).getTime()) / 86400000 + new Date(year, 0, 1).getDay() + 1) / 7);
-      return `${year}-W${String(week).padStart(2, '0')}`;
+  const handleQuantityChange = (materialId: number, value: string) => {
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setQuantities(prev => ({ ...prev, [materialId]: value }));
     }
-    if (type === 'monthly') {
-      return new Date().toISOString().slice(0, 7);
-    }
-    return new Date().toISOString().split('T')[0];
   };
 
-  if (loading) {
+  const getConsumption = (materialId: number) => {
+    const item = getItemData(materialId);
+    return item?.consumption;
+  };
+
+  const getPrevQuantity = (materialId: number) => {
+    const item = getItemData(materialId);
+    return item?.prev_quantity;
+  };
+
+  const formatAmount = (val: number | null | undefined) => {
+    if (val == null) return '-';
+    return val.toFixed(1);
+  };
+
+  // Weekly summary calculations
+  const getWeeklySummary = () => {
+    if (type !== 'weekly' || !selectedCategory) return null;
+    const catMaterials = materials.filter(m => m.category === selectedCategory);
+    let totalOpening = 0, totalPurchase = 0, totalClosing = 0;
+
+    catMaterials.forEach(m => {
+      const qty = parseFloat(quantities[m.id]) || 0;
+      const prev = getPrevQuantity(m.id) || 0;
+      const pch = purchases[m.id] || 0;
+      totalOpening += prev;
+      totalPurchase += pch;
+      totalClosing += qty;
+    });
+
+    return { opening: totalOpening, purchase: totalPurchase, closing: totalClosing };
+  };
+
+  const renderDatePicker = () => (
+    <div className="flex items-center gap-2 px-1">
+      <div className="flex-1 relative">
+        <input
+          type="date"
+          value={date}
+          onChange={e => setDate(e.target.value)}
+          className="w-full px-3 py-2.5 rounded-lg text-sm border appearance-none"
+          style={{ borderColor: '#E5E5E5', background: '#FAFAFA', fontSize: '16px', color: '#1A1A1A' }}
+        />
+      </div>
+      {type === 'daily' && (
+        <button
+          onClick={() => {
+            const today = new Date().toISOString().split('T')[0];
+            setDate(today);
+          }}
+          className="px-3 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap"
+          style={{ background: '#1A1A1A', color: '#FFF' }}
+        >
+          今天
+        </button>
+      )}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="w-10 h-10 rounded-lg flex items-center justify-center"
+        style={{ background: '#F0F0F0' }}
+      >
+        <svg className="w-5 h-5" fill="none" stroke="#1A1A1A" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  );
+
+  const renderSearchBar = () => (
+    <div className="relative">
+      <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" fill="none" stroke="#999" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      <input
+        ref={searchInputRef}
+        type="text"
+        placeholder="搜索物料名称..."
+        value={searchTerm}
+        onChange={e => setSearchTerm(e.target.value)}
+        className="w-full pl-9 pr-8 py-2.5 rounded-lg text-sm border"
+        style={{ borderColor: '#E5E5E5', background: '#FAFAFA', fontSize: '16px' }}
+      />
+      {searchTerm && (
+        <button
+          onClick={() => { setSearchTerm(''); searchInputRef.current?.focus(); }}
+          className="absolute right-3 top-1/2 -translate-y-1/2"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="#999" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+
+  const renderSidebar = () => {
+    if (!sidebarOpen) return null;
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-2 rounded-full" style={{ borderColor: '#E5E5E5', borderTopColor: '#1A1A1A' }} />
+      <div className="w-[85px] flex-shrink-0 overflow-y-auto border-r" style={{ background: '#F5F5F5', borderColor: '#E5E5E5' }}>
+        {categories.map(cat => {
+          const isActive = selectedCategory === cat;
+          const count = getCategoryCount(cat);
+          return (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className="w-full flex flex-col items-center py-3 px-1 text-center relative"
+              style={{
+                background: isActive ? '#FFF' : 'transparent',
+                borderLeft: isActive ? '3px solid #1A1A1A' : '3px solid transparent',
+              }}
+            >
+              <span className="text-xs font-medium leading-tight" style={{ color: isActive ? '#1A1A1A' : '#666', fontWeight: isActive ? 600 : 400 }}>
+                {cat}
+              </span>
+              <span className="text-[10px] mt-0.5" style={{ color: '#999' }}>
+                {count}项
+              </span>
+            </button>
+          );
+        })}
       </div>
     );
-  }
+  };
 
-  return (
-    <div className="flex flex-col h-full" style={{ background: '#FAFAFA' }}>
-      {/* Fixed Top: Header + Date */}
-      <div className="sticky top-0 z-20 px-4 pt-4 pb-2 space-y-3" style={{ background: '#FAFAFA' }}>
-        <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold" style={{ color: '#1A1A1A' }}>{title}</h1>
-          {totalAmount > 0 && (
-            <span className="text-sm font-medium" style={{ color: '#1A1A1A' }}>
-              库存: ¥{totalAmount.toFixed(2)}
-            </span>
-          )}
-        </div>
-
-        {/* Date + Search Row */}
-        <div className="flex items-center gap-2">
-          <div className="flex-1 bg-white rounded-xl p-2.5 shadow-sm" style={{ border: '1px solid #F0F0F0' }}>
-            <div className="flex items-center gap-2">
-              <input
-                type={type === 'monthly' ? 'month' : type === 'weekly' ? 'text' : 'date'}
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                placeholder={datePlaceholder}
-                className="flex-1 text-sm outline-none"
-                style={{ color: '#333' }}
-              />
-              <button
-                onClick={() => setDate(getTodayDate())}
-                className="px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap"
-                style={{ background: '#F5F5F5', color: '#1A1A1A' }}
-              >
-                {type === 'daily' ? '今天' : type === 'weekly' ? '本周' : '本月'}
-              </button>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl p-2.5 shadow-sm shrink-0" style={{ border: '1px solid #F0F0F0' }}>
-            <svg className="w-5 h-5" style={{ color: '#999' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-        </div>
-
-        {/* Search Input */}
-        {searchTerm !== undefined && (
-          <div className="bg-white rounded-xl px-3 py-2 shadow-sm" style={{ border: '1px solid #F0F0F0' }}>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="搜索物料名称..."
-              className="w-full text-sm outline-none"
-              style={{ color: '#333' }}
-            />
-          </div>
-        )}
+  const renderMaterialList = () => (
+    <div className="flex-1 overflow-y-auto pb-4">
+      {/* Category title */}
+      <div className="px-3 py-2 flex items-center justify-between">
+        <h3 className="text-sm font-bold" style={{ color: '#1A1A1A' }}>
+          {selectedCategory || '全部'}
+        </h3>
+        <span className="text-xs" style={{ color: '#999' }}>
+          {filteredMaterials.length}项
+        </span>
       </div>
 
-      {/* Category Tabs - Horizontal Scroll */}
-      <div className="sticky z-10 px-4 pb-2" style={{ top: '180px', background: '#FAFAFA' }}>
-        <div ref={tabRef} className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          {filteredCategories.map(cat => {
-            const count = materials.filter(m => m.category === cat && (!searchTerm || m.name.includes(searchTerm))).length;
-            const isActive = cat === selectedCategory;
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin w-6 h-6 border-2 rounded-full" style={{ borderColor: '#E5E5E5', borderTopColor: '#1A1A1A' }} />
+        </div>
+      ) : filteredMaterials.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <svg className="w-12 h-12 mb-3" fill="none" stroke="#DDD" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          <span className="text-sm" style={{ color: '#999' }}>暂无物料</span>
+        </div>
+      ) : (
+        <div className="space-y-2 px-3">
+          {filteredMaterials.map(material => {
+            const item = getItemData(material.id);
+            const qty = quantities[material.id] || '';
+            const amount = (parseFloat(qty) || 0) * (material.price || 0);
+            const consumption = getConsumption(material.id);
+            const prevQty = getPrevQuantity(material.id);
+            const purchase = purchases[material.id];
+
             return (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all shrink-0"
-                style={{
-                  background: isActive ? '#1A1A1A' : '#F5F5F5',
-                  color: isActive ? '#FFFFFF' : '#666',
-                }}
+              <div
+                key={material.id}
+                className="rounded-xl p-3"
+                style={{ background: '#FFF', border: '1px solid #F0F0F0' }}
               >
-                {cat}
-                <span className="text-[10px] opacity-60">({count})</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Materials List for Selected Category */}
-      <div className="flex-1 px-4 pb-4">
-        {currentMaterials.length > 0 ? (
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden" style={{ border: '1px solid #F0F0F0' }}>
-            {/* Category Header */}
-            <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid #F0F0F0', background: '#FAFAFA' }}>
-              <span className="text-sm font-semibold" style={{ color: '#333' }}>{selectedCategory}</span>
-              <span className="text-xs" style={{ color: '#999' }}>
-                {currentMaterials.length}项
-              </span>
-            </div>
-
-            {/* Material Items */}
-            <div className="divide-y" style={{ borderColor: '#F5F5F5' }}>
-              {currentMaterials.map(material => {
-                const qty = items.get(material.id) || 0;
-                const price = material.price ? parseFloat(material.price) : 0;
-                const savedItem = savedItems.find(si => si.material_id === material.id);
-
-                return (
-                  <div key={material.id} className="px-4 py-3">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm font-medium" style={{ color: '#333' }}>{material.name}</span>
-                        <span className="text-xs ml-1.5" style={{ color: '#999' }}>{material.unit}</span>
-                      </div>
-                      {price > 0 && (
-                        <span className="text-xs ml-2 shrink-0" style={{ color: '#999' }}>¥{price}</span>
-                      )}
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium" style={{ color: '#1A1A1A' }}>
+                      {material.name}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        value={qty || ''}
-                        onChange={(e) => handleQuantityChange(material.id, e.target.value)}
-                        placeholder="0"
-                        className="flex-1 px-3 py-2.5 rounded-lg border text-base outline-none"
-                        style={{ borderColor: '#E5E5E5', color: '#1A1A1A', fontSize: '16px' }}
-                        step="0.01"
-                        min="0"
-                        inputMode="decimal"
-                      />
-                      {price > 0 && qty > 0 && (
-                        <span className="text-sm font-medium whitespace-nowrap" style={{ color: '#1A1A1A' }}>
-                          ¥{(qty * price).toFixed(2)}
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[11px]" style={{ color: '#999' }}>{material.unit}</span>
+                      {material.price != null && (
+                        <span className="text-[11px]" style={{ color: '#666' }}>
+                          ¥{material.price}/{material.unit.split('/').pop()}
                         </span>
                       )}
                     </div>
-                    {savedItem && savedItem.consumption !== undefined && savedItem.consumption > 0 && (
-                      <div className="mt-1.5 flex items-center gap-3 text-xs" style={{ color: '#666' }}>
-                        <span>昨日: {savedItem.prev_quantity}</span>
-                        <span>消耗: <span style={{ color: '#1A1A1A', fontWeight: 500 }}>{savedItem.consumption}</span></span>
-                        <span>¥{savedItem.consumption_amount?.toFixed(2)}</span>
-                      </div>
-                    )}
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center h-32 text-sm" style={{ color: '#999' }}>
-            {searchTerm ? '未找到匹配的物料' : '该分类暂无物料'}
-          </div>
-        )}
+                  <div className="flex-shrink-0">
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      value={qty}
+                      onChange={e => handleQuantityChange(material.id, e.target.value)}
+                      placeholder="0"
+                      className="w-20 text-right px-3 py-2 rounded-lg text-sm border"
+                      style={{ borderColor: '#E5E5E5', fontSize: '16px', color: '#1A1A1A' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Info row */}
+                <div className="flex items-center gap-3 text-[11px]" style={{ color: '#999' }}>
+                  {prevQty !== undefined && (
+                    <span>期初: {formatAmount(prevQty)}</span>
+                  )}
+                  {purchase !== undefined && purchase > 0 && (
+                    <span>进货: +{purchase}</span>
+                  )}
+                  {amount > 0 && (
+                    <span className="font-medium" style={{ color: '#1A1A1A' }}>¥{amount.toFixed(1)}</span>
+                  )}
+                  {consumption !== undefined && consumption >= 0 && (
+                    <span style={{ color: consumption > 0 ? '#1A1A1A' : '#999' }}>
+                      消耗: {formatAmount(consumption)}
+                    </span>
+                  )}
+                  {consumption !== undefined && consumption < 0 && (
+                    <span style={{ color: '#EF4444' }}>
+                      消耗: {formatAmount(consumption)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Top bar: date + search */}
+      <div className="sticky top-0 z-10 bg-white px-3 py-2 space-y-2" style={{ borderBottom: '1px solid #E5E5E5' }}>
+        {renderDatePicker()}
+        {renderSearchBar()}
       </div>
 
-      {/* Save Button - Fixed at Bottom */}
-      <div className="sticky bottom-0 z-20 px-4 pb-4 pt-2" style={{ background: 'linear-gradient(to top, #FAFAFA 60%, transparent)' }}>
-        {!date ? (
-          <div className="text-center text-xs py-2" style={{ color: '#999' }}>
-            请先选择日期，再录入库存数量
+      {/* Main content: sidebar + material list */}
+      <div className="flex flex-1 overflow-hidden">
+        {renderSidebar()}
+        {renderMaterialList()}
+      </div>
+
+      {/* Bottom save bar */}
+      <div className="sticky bottom-0 bg-white px-3 py-2" style={{ borderTop: '1px solid #E5E5E5' }}>
+        {message && (
+          <div className="mb-2 px-3 py-2 rounded-lg text-sm text-center" style={{
+            background: message.type === 'success' ? '#F0FDF4' : '#FEF2F2',
+            color: message.type === 'success' ? '#166534' : '#991B1B',
+          }}>
+            {message.text}
           </div>
-        ) : (
+        )}
+        <div className="flex items-center gap-3">
+          {existingRecord && (
+            <div className="text-xs flex-1" style={{ color: '#999' }}>
+              已保存 {existingRecord.created_at.slice(0, 10)}
+              {existingRecord.total_amount > 0 && ` · ¥${existingRecord.total_amount}`}
+            </div>
+          )}
           <button
             onClick={handleSave}
-            disabled={saving}
-            className="w-full py-3.5 rounded-xl text-white font-medium text-sm shadow-lg disabled:opacity-50 active:opacity-90 transition-all"
+            disabled={saving || !date}
+            className="flex-1 py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50"
             style={{ background: '#1A1A1A', minHeight: '44px' }}
           >
             {saving ? '保存中...' : '保存盘点数据'}
           </button>
-        )}
-      </div>
-
-      {/* Toast Message */}
-      {message && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg text-sm shadow-lg z-50 animate-fade-in" style={{
-          background: message.includes('成功') ? '#F0FDF4' : '#FEF2F2',
-          color: message.includes('成功') ? '#16A34A' : '#EF4444',
-        }}>
-          {message}
         </div>
-      )}
+      </div>
     </div>
   );
 }

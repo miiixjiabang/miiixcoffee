@@ -9,8 +9,6 @@ export default function DailyInventoryPage() {
       <InventoryForm
         type="daily"
         title="日盘录入"
-        dateLabel="盘点日期"
-        datePlaceholder="选择日期"
       />
     </AppLayout>
   );
