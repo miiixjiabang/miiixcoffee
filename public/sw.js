@@ -1,12 +1,11 @@
-const CACHE_NAME = 'miiix-cache-v1';
+const CACHE_NAME = 'miiix-cache-v2';
 
+// 只预缓存静态文件，不缓存页面
 const PRECACHE_URLS = [
-  '/login',
   '/manifest.json',
   '/icon.svg',
 ];
 
-// 安装时预缓存核心页面
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -16,7 +15,6 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// 激活时清理旧缓存
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -27,40 +25,32 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
+  // 立即接管所有页面
   self.clients.claim();
 });
 
-// 网络优先策略（API 请求不缓存）
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // API 请求不缓存，直接走网络
-  if (url.pathname.startsWith('/api/')) {
+  // 只缓存 manifest 和图标，其他全部走网络
+  if (url.pathname === '/manifest.json' || url.pathname === '/icon.svg') {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        return cached || fetch(event.request).then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return response;
+        });
+      })
+    );
     return;
   }
 
-  // 静态资源缓存优先
+  // 所有其他请求（包括页面、Next.js chunks、API）全部走网络
+  // 网络失败时回退到缓存
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((response) => {
-        if (!response || response.status !== 200) {
-          return response;
-        }
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, clone);
-        });
-        return response;
-      }).catch(() => {
-        // 离线时返回缓存的页面
-        if (event.request.mode === 'navigate') {
-          return caches.match('/login');
-        }
-        return new Response('离线中', { status: 503 });
-      });
+    fetch(event.request).catch(() => {
+      return caches.match(event.request);
     })
   );
 });
