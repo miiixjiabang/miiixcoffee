@@ -1,0 +1,9 @@
+<view class="page">
+  <inventory-form 
+    type="weekly" 
+    title="周盘录入"
+    dateLabel="本周起始日（周一）"
+    datePlaceholder="请选择周一日期"
+    bind:saved="onSaved"
+  />
+</view>

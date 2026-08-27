@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "日盘录入",
+  "usingComponents": {
+    "inventory-form": "/components/inventory-form/inventory-form"
+  }
+}

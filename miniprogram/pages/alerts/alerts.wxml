@@ -1,0 +1,42 @@
+<view class="container">
+  <!-- 预警列表 -->
+  <view class="card">
+    <text class="section-title">低库存预警</text>
+    <view wx:if="{{alerts.length === 0}}" class="empty">暂无预警</view>
+    <view wx:for="{{alerts}}" wx:key="material_id" class="alert-item">
+      <view class="alert-info">
+        <text class="alert-name">{{item.material_name}}</text>
+        <text class="alert-category">{{item.category}}</text>
+      </view>
+      <view class="alert-values">
+        <text class="alert-current">库存: {{item.current_qty || 0}}</text>
+        <text class="alert-threshold">阈值: {{item.threshold}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 设置阈值（仅店长） -->
+  <view wx:if="{{user.role === 'admin'}}" class="card">
+    <text class="section-title">设置预警阈值</text>
+    
+    <view class="form-item">
+      <text class="form-label">物料</text>
+      <picker bindchange="onMaterialChange" range="{{materials}}" range-key="name">
+        <view class="picker-value">
+          <text wx:if="{{selectedMaterial}}">{{selectedMaterial.name}}</text>
+          <text wx:else class="placeholder">请选择物料</text>
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">预警阈值</text>
+      <input class="form-input" type="digit" placeholder="库存低于此值时预警" value="{{threshold}}" bindinput="onThresholdInput" />
+    </view>
+
+    <button class="save-btn" bindtap="handleSetThreshold" loading="{{saving}}" disabled="{{saving}}">
+      {{saving ? '保存中...' : '保存阈值'}}
+    </button>
+  </view>
+</view>

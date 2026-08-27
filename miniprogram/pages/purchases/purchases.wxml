@@ -1,0 +1,63 @@
+<view class="container">
+  <!-- 表单 -->
+  <view class="card">
+    <text class="section-title">新增进货</text>
+    
+    <view class="form-item">
+      <text class="form-label">物料</text>
+      <picker bindchange="onMaterialChange" range="{{materials}}" range-key="name">
+        <view class="picker-value">
+          <text wx:if="{{selectedMaterial}}">{{selectedMaterial.name}}</text>
+          <text wx:else class="placeholder">请选择物料</text>
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">进货日期</text>
+      <picker mode="date" bindchange="onDateChange" value="{{purchaseDate}}">
+        <view class="picker-value">
+          <text wx:if="{{purchaseDate}}">{{purchaseDate}}</text>
+          <text wx:else class="placeholder">请选择日期</text>
+          <text class="arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">数量</text>
+      <input class="form-input" type="digit" placeholder="请输入数量" value="{{quantity}}" bindinput="onQuantityInput" />
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">单价（元）</text>
+      <input class="form-input" type="digit" placeholder="请输入单价" value="{{unitPrice}}" bindinput="onPriceInput" />
+    </view>
+
+    <view wx:if="{{totalAmount > 0}}" class="total-row">
+      <text class="total-label">总金额</text>
+      <text class="total-value">¥{{totalAmount}}</text>
+    </view>
+
+    <button class="save-btn" bindtap="handleSave" loading="{{saving}}" disabled="{{saving}}">
+      {{saving ? '保存中...' : '保存进货'}}
+    </button>
+  </view>
+
+  <!-- 最近进货 -->
+  <view class="card">
+    <text class="section-title">最近进货</text>
+    <view wx:if="{{purchases.length === 0}}" class="empty">暂无进货记录</view>
+    <view wx:for="{{purchases}}" wx:key="id" class="purchase-item">
+      <view class="purchase-info">
+        <text class="purchase-name">{{item.materials.name}}</text>
+        <text class="purchase-date">{{item.purchase_date}}</text>
+      </view>
+      <view class="purchase-amount">
+        <text class="purchase-qty">{{item.quantity}} {{item.materials.unit}}</text>
+        <text class="purchase-price">¥{{item.total_amount}}</text>
+      </view>
+    </view>
+  </view>
+</view>

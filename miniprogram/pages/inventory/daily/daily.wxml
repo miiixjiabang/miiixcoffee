@@ -1,0 +1,9 @@
+<view class="page">
+  <inventory-form 
+    type="daily" 
+    title="日盘录入"
+    dateLabel="盘点日期"
+    datePlaceholder="请选择日期"
+    bind:saved="onSaved"
+  />
+</view>

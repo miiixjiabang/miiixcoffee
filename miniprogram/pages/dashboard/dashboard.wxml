@@ -1,0 +1,70 @@
+<view class="container">
+  <!-- 顶部信息 -->
+  <view class="header">
+    <view class="user-info">
+      <text class="user-name">{{user.display_name}}</text>
+      <text class="user-role">{{user.role === 'admin' ? '店长' : '店员'}}</text>
+    </view>
+    <view class="logout-btn" bindtap="handleLogout">退出</view>
+  </view>
+
+  <!-- 待审核（仅店长） -->
+  <view wx:if="{{user.role === 'admin' && pendingCount > 0}}" class="card pending-card" bindtap="goToPending">
+    <view class="pending-left">
+      <view class="pending-icon">!</view>
+      <view>
+        <text class="pending-title">待审核盘点</text>
+        <text class="pending-desc">有 {{pendingCount}} 条盘点记录等待审核</text>
+      </view>
+    </view>
+    <view class="pending-arrow">></view>
+  </view>
+
+  <!-- 快捷入口 -->
+  <view class="quick-actions">
+    <view class="action-card" bindtap="goToDaily">
+      <text class="action-icon"></text>
+      <text class="action-text">日盘</text>
+    </view>
+    <view class="action-card" bindtap="goToWeekly">
+      <text class="action-icon">📅</text>
+      <text class="action-text">周盘</text>
+    </view>
+    <view class="action-card" bindtap="goToMonthly">
+      <text class="action-icon">📆</text>
+      <text class="action-text">月盘</text>
+    </view>
+    <view class="action-card" bindtap="goToPurchases">
+      <text class="action-icon">🚚</text>
+      <text class="action-text">进货</text>
+    </view>
+  </view>
+
+  <!-- 今日统计 -->
+  <view class="card">
+    <text class="card-title">今日盘点</text>
+    <view class="stats-row">
+      <view class="stat-item">
+        <text class="stat-value">{{todayRecords || 0}}</text>
+        <text class="stat-label">已盘点</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{todayAmount || 0}}</text>
+        <text class="stat-label">库存金额</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 最近盘点 -->
+  <view class="card">
+    <text class="card-title">最近盘点</text>
+    <view wx:if="{{recentRecords.length === 0}}" class="empty">暂无盘点记录</view>
+    <view wx:for="{{recentRecords}}" wx:key="id" class="record-item">
+      <view class="record-info">
+        <text class="record-date">{{item.record_date}}</text>
+        <text class="record-type">{{item.record_type === 'daily' ? '日盘' : item.record_type === 'weekly' ? '周盘' : '月盘'}}</text>
+      </view>
+      <view class="record-amount">¥{{item.total_amount}}</view>
+    </view>
+  </view>
+</view>

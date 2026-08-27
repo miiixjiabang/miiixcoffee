@@ -1,0 +1,9 @@
+<view class="page">
+  <inventory-form 
+    type="monthly" 
+    title="月盘录入"
+    dateLabel="盘点月份"
+    datePlaceholder="请选择月份"
+    bind:saved="onSaved"
+  />
+</view>

@@ -1,0 +1,83 @@
+<view class="form-container">
+  <!-- 日期选择 -->
+  <view class="date-section">
+    <text class="date-label">{{dateLabel}}</text>
+    <picker mode="date" value="{{date}}" bindchange="onDateChange">
+      <view class="date-picker">
+        <text wx:if="{{date}}">{{date}}</text>
+        <text wx:else class="date-placeholder">{{datePlaceholder}}</text>
+        <text class="date-icon">📅</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 搜索 -->
+  <view class="search-section">
+    <input 
+      class="search-input" 
+      placeholder="搜索物料名称..." 
+      value="{{searchTerm}}"
+      bindinput="onSearchInput"
+    />
+  </view>
+
+  <!-- 分类侧边栏 + 物料列表 -->
+  <view class="content-section" wx:if="{{categories.length > 0}}">
+    <!-- 左侧分类 -->
+    <scroll-view scroll-y class="category-sidebar">
+      <view 
+        wx:for="{{categories}}" 
+        wx:key="name"
+        class="category-item {{selectedCategory === item.name ? 'active' : ''}}"
+        bindtap="onCategoryTap"
+        data-name="{{item.name}}"
+      >
+        <text class="category-name">{{item.name}}</text>
+        <text class="category-count">{{item.count}}项</text>
+      </view>
+    </scroll-view>
+
+    <!-- 右侧物料 -->
+    <scroll-view scroll-y class="material-list">
+      <view class="material-header">
+        <text class="material-title">{{selectedCategory}}</text>
+        <text class="material-count">{{currentMaterials.length}} 项物料</text>
+      </view>
+
+      <view wx:for="{{currentMaterials}}" wx:key="id" class="material-item">
+        <view class="material-info">
+          <text class="material-name">{{item.name}}</text>
+          <text class="material-unit">{{item.unit}}</text>
+          <text wx:if="{{item.price}}" class="material-price">¥{{item.price}}</text>
+        </view>
+        <input 
+          class="quantity-input" 
+          type="digit"
+          placeholder="0"
+          value="{{quantities[item.id] || ''}}"
+          bindinput="onQuantityInput"
+          data-id="{{item.id}}"
+        />
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{categories.length === 0}}" class="empty">
+    <text>暂无物料</text>
+  </view>
+
+  <!-- 保存按钮 -->
+  <view class="save-section">
+    <button 
+      wx:if="{{date}}"
+      class="save-btn" 
+      bindtap="handleSave"
+      loading="{{saving}}"
+      disabled="{{saving}}"
+    >
+      {{saving ? '保存中...' : '保存盘点'}}
+    </button>
+    <text wx:else class="save-hint">请先选择日期</text>
+  </view>
+</view>

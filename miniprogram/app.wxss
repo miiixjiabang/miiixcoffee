@@ -1,0 +1,142 @@
+/* 全局样式 */
+page {
+  background-color: #FAFAFA;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 28rpx;
+  color: #1A1A1A;
+  line-height: 1.5;
+}
+
+/* 通用容器 */
+.container {
+  padding: 32rpx;
+  padding-bottom: 140rpx;
+}
+
+/* 卡片 */
+.card {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+/* 按钮 */
+.btn-primary {
+  background: #1A1A1A;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  text-align: center;
+}
+
+.btn-primary:active {
+  opacity: 0.8;
+}
+
+.btn-secondary {
+  background: #F5F5F5;
+  color: #1A1A1A;
+  border: none;
+  border-radius: 16rpx;
+  padding: 16rpx 24rpx;
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.btn-secondary:active {
+  opacity: 0.8;
+}
+
+/* 输入框 */
+.input {
+  background: #FFFFFF;
+  border: 2rpx solid #E5E5E5;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  font-size: 32rpx;
+  color: #1A1A1A;
+}
+
+.input:focus {
+  border-color: #1A1A1A;
+}
+
+/* 标签 */
+.tag {
+  display: inline-block;
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+}
+
+.tag-pending {
+  background: #FFF7ED;
+  color: #E86825;
+}
+
+.tag-approved {
+  background: #F0FDF4;
+  color: #22C55E;
+}
+
+.tag-danger {
+  background: #FEF2F2;
+  color: #EF4444;
+}
+
+/* 文字 */
+.text-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1A1A1A;
+}
+
+.text-subtitle {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.text-body {
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.text-muted {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.text-price {
+  font-size: 28rpx;
+  color: #1A1A1A;
+  font-weight: 600;
+}
+
+/* 分割线 */
+.divider {
+  height: 1rpx;
+  background: #F0F0F0;
+  margin: 24rpx 0;
+}
+
+/* 空状态 */
+.empty {
+  text-align: center;
+  padding: 80rpx 0;
+  color: #999999;
+  font-size: 28rpx;
+}
+
+/* 加载 */
+.loading {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #999999;
+}

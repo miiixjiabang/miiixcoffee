@@ -1,0 +1,52 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/dashboard/dashboard",
+    "pages/inventory/daily/daily",
+    "pages/inventory/weekly/weekly",
+    "pages/inventory/monthly/monthly",
+    "pages/purchases/purchases",
+    "pages/alerts/alerts",
+    "pages/reports/reports"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#1A1A1A",
+    "navigationBarTitleText": "Miiix Coffee",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#FAFAFA",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#1A1A1A",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/dashboard/dashboard",
+        "text": "首页",
+        "iconPath": "assets/icon-home.png",
+        "selectedIconPath": "assets/icon-home-active.png"
+      },
+      {
+        "pagePath": "pages/inventory/daily/daily",
+        "text": "日盘",
+        "iconPath": "assets/icon-daily.png",
+        "selectedIconPath": "assets/icon-daily-active.png"
+      },
+      {
+        "pagePath": "pages/purchases/purchases",
+        "text": "进货",
+        "iconPath": "assets/icon-purchase.png",
+        "selectedIconPath": "assets/icon-purchase-active.png"
+      },
+      {
+        "pagePath": "pages/alerts/alerts",
+        "text": "预警",
+        "iconPath": "assets/icon-alert.png",
+        "selectedIconPath": "assets/icon-alert-active.png"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json"
+}

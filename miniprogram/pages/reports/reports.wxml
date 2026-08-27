@@ -1,0 +1,54 @@
+<view class="container">
+  <!-- 时间选择 -->
+  <view class="time-section">
+    <picker mode="date" bindchange="onStartDateChange" value="{{startDate}}">
+      <view class="time-picker">
+        <text>{{startDate || '开始日期'}}</text>
+      </view>
+    </picker>
+    <text class="time-sep">至</text>
+    <picker mode="date" bindchange="onEndDateChange" value="{{endDate}}">
+      <view class="time-picker">
+        <text>{{endDate || '结束日期'}}</text>
+      </view>
+    </picker>
+    <button class="query-btn" bindtap="loadReport">查询</button>
+  </view>
+
+  <!-- 汇总表格 -->
+  <view class="card">
+    <text class="section-title">消耗汇总</text>
+    <scroll-view scroll-x class="table-scroll">
+      <view class="table">
+        <view class="table-header">
+          <text class="col-date">日期</text>
+          <text class="col-num">消耗金额</text>
+          <text class="col-num">物料数</text>
+        </view>
+        <view wx:if="{{summary.length === 0}}" class="empty">暂无数据</view>
+        <view wx:for="{{summary}}" wx:key="date" class="table-row">
+          <text class="col-date">{{item.date}}</text>
+          <text class="col-num">¥{{item.total_consumption || item.total_amount || 0}}</text>
+          <text class="col-num">{{item.items || 0}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 物料消耗排行 -->
+  <view class="card">
+    <text class="section-title">物料消耗排行</text>
+    <view wx:if="{{trend.length === 0}}" class="empty">暂无数据</view>
+    <view wx:for="{{trend}}" wx:key="material_id" class="trend-item">
+      <view class="trend-info">
+        <text class="trend-name">{{item.name}}</text>
+        <text class="trend-category">{{item.category}}</text>
+      </view>
+      <view class="trend-values">
+        <text wx:for="{{Object.keys(item.data)}}" wx:key="*this" class="trend-data">
+          {{item}}: {{item.data[item]}}
+        </text>
+      </view>
+    </view>
+  </view>
+</view>
