@@ -50,4 +50,68 @@ Page({
       wx.hideLoading();
     }
   }
+
+  // 导出 CSV
+  exportCSV() {
+    const { summary, trend, startDate, endDate } = this.data;
+
+    let csv = '\uFEFF'; // BOM for Excel
+    csv += '日期,消耗金额,物料数\n';
+    summary.forEach(item => {
+      const amount = item.total_consumption || item.total_amount || 0;
+      csv += `${item.date},¥${amount},${item.items || 0}\n`;
+    });
+
+    csv += '\n物料名称,分类';
+    const dates = new Set();
+    trend.forEach(t => {
+      Object.keys(t.data).forEach(d => dates.add(d));
+    });
+    const sortedDates = Array.from(dates).sort();
+    sortedDates.forEach(d => { csv += `,${d}`; });
+    csv += '\n';
+
+    trend.forEach(t => {
+      csv += `${t.name},${t.category}`;
+      sortedDates.forEach(d => {
+        csv += `,${t.data[d] || 0}`;
+      });
+      csv += '\n';
+    });
+
+    const fs = wx.getFileSystemManager();
+    const fileName = `Miiix报表_${startDate}_${endDate}.csv`;
+    const filePath = `${wx.env.USER_DATA_PATH}/${fileName}`;
+
+    wx.showLoading({ title: '生成中' });
+    try {
+      fs.writeFileSync(filePath, csv, 'utf8');
+      wx.hideLoading();
+      wx.showActionSheet({
+        itemList: ['打开文件', '保存到手机'],
+        success: (res) => {
+          if (res.tapIndex === 0) {
+            wx.openDocument({
+              filePath: filePath,
+              fileType: 'csv',
+              success: () => console.log('打开成功'),
+              fail: (err) => {
+                wx.showToast({ title: '打开失败', icon: 'none' });
+              }
+            });
+          } else {
+            wx.saveFile({
+              tempFilePath: filePath,
+              success: () => {
+                wx.showToast({ title: '已保存' });
+              }
+            });
+          }
+        }
+      });
+    } catch (err) {
+      wx.hideLoading();
+      wx.showToast({ title: '导出失败', icon: 'none' });
+    }
+  }
 });

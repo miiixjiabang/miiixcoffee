@@ -121,6 +121,15 @@ export default function ReportsPage() {
               />
             </div>
           </div>
+          {summary.length > 0 && (
+            <button
+              onClick={exportCSV}
+              className="w-full mt-3 py-2.5 rounded-lg text-sm font-medium transition-opacity"
+              style={{ background: '#1A1A1A', color: '#fff' }}
+            >
+              导出 CSV
+            </button>
+          )}
         </div>
 
         {/* Weekly Waste Comparison Section */}

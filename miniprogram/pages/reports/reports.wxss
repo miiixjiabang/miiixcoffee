@@ -29,6 +29,21 @@
   line-height: 1.5 !important;
 }
 
+.export-section {
+  margin-bottom: 24rpx;
+}
+
+.export-btn {
+  background: #FFFFFF !important;
+  color: #1A1A1A !important;
+  border: 2rpx solid #1A1A1A !important;
+  border-radius: 16rpx !important;
+  font-size: 26rpx !important;
+  padding: 18rpx 32rpx !important;
+  line-height: 1.5 !important;
+  width: 100% !important;
+}
+
 .section-title {
   font-size: 32rpx;
   font-weight: 700;

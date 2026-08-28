@@ -15,6 +15,13 @@
     <button class="query-btn" bindtap="loadReport">查询</button>
   </view>
 
+  <!-- 导出按钮 -->
+  <view class="export-section">
+    <button class="export-btn" bindtap="exportCSV" wx:if="{{summary.length > 0}}">
+      <text>📥 导出报表</text>
+    </button>
+  </view>
+
   <!-- 汇总表格 -->
   <view class="card">
     <text class="section-title">消耗汇总</text>
