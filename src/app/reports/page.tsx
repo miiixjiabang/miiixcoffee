@@ -145,24 +145,22 @@ export default function ReportsPage() {
               />
             </div>
           </div>
-          {summary.length > 0 && (
-            <div className="flex flex-col gap-2 mt-3">
-              <button
-                onClick={() => exportCSV('summary')}
-                className="w-full py-2.5 rounded-lg text-sm font-medium transition-opacity"
-                style={{ background: '#1A1A1A', color: '#fff' }}
-              >
-                导出消耗汇总
-              </button>
-              <button
-                onClick={() => exportCSV(type)}
-                className="w-full py-2.5 rounded-lg text-sm font-medium transition-opacity"
-                style={{ background: '#333', color: '#fff' }}
-              >
-                导出{type === 'daily' ? '日盘' : type === 'weekly' ? '周盘' : '月盘'}底表
-              </button>
-            </div>
-          )}
+          <div className="flex flex-col gap-2 mt-3">
+            <button
+              onClick={() => exportCSV('summary')}
+              className="w-full py-2.5 rounded-lg text-sm font-medium transition-opacity"
+              style={{ background: '#1A1A1A', color: '#fff' }}
+            >
+              导出消耗汇总
+            </button>
+            <button
+              onClick={() => exportCSV(type)}
+              className="w-full py-2.5 rounded-lg text-sm font-medium transition-opacity"
+              style={{ background: '#333', color: '#fff' }}
+            >
+              导出{type === 'daily' ? '日盘' : type === 'weekly' ? '周盘' : '月盘'}底表
+            </button>
+          </div>
         </div>
 
         {/* Weekly Waste Comparison Section */}
