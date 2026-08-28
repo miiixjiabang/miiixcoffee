@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import * as XLSX from 'xlsx';
 
 // GET /api/reports/export?type=summary&start_date=2026-01-01&end_date=2026-01-31
 export async function GET(req: NextRequest) {
@@ -19,25 +20,26 @@ export async function GET(req: NextRequest) {
     }
 
     const db = getDb();
-
-    let csv = '';
+    const wb = XLSX.utils.book_new();
 
     if (type === 'summary') {
-      csv = await exportSummary(db, startDate, endDate);
+      await buildSummarySheet(wb, db, startDate, endDate);
     } else if (type === 'daily') {
-      csv = await exportDaily(db, startDate, endDate);
+      await buildDailySheet(wb, db, startDate, endDate);
     } else if (type === 'weekly') {
-      csv = await exportWeekly(db, startDate, endDate);
+      await buildWeeklySheet(wb, db, startDate, endDate);
     } else if (type === 'monthly') {
-      csv = await exportMonthly(db, startDate, endDate);
+      await buildMonthlySheet(wb, db, startDate, endDate);
     } else {
       return NextResponse.json({ error: '不支持的导出类型' }, { status: 400 });
     }
 
-    const filename = `miiix_${type}_${startDate}_${endDate}.csv`;
-    return new NextResponse(csv, {
+    const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
+    const filename = `miiix_${type}_${startDate}_${endDate}.xlsx`;
+
+    return new NextResponse(buf, {
       headers: {
-        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
       },
     });
@@ -47,9 +49,12 @@ export async function GET(req: NextRequest) {
   }
 }
 
+function sheetToBuf(rows: string[][], sheetName: string): { data: string[][], merges: XLSX.Range[] } {
+  return { data: rows, merges: [] };
+}
+
 // 消耗汇总报表
-async function exportSummary(db: any, startDate: string, endDate: string) {
-  // Get all daily records in date range
+async function buildSummarySheet(wb: XLSX.WorkBook, db: any, startDate: string, endDate: string) {
   const { data: records } = await db
     .from('inventory_records')
     .select('id, record_date')
@@ -59,17 +64,19 @@ async function exportSummary(db: any, startDate: string, endDate: string) {
     .lte('record_date', endDate)
     .order('record_date', { ascending: true });
 
-  if (!records || records.length === 0) return '暂无数据\n';
+  if (!records || records.length === 0) {
+    const ws = XLSX.utils.aoa_to_sheet([['暂无数据']]);
+    XLSX.utils.book_append_sheet(wb, ws, '消耗汇总');
+    return;
+  }
 
   const recordIds = records.map((r: { id: number }) => r.id);
 
-  // Get all items with consumption data
   const { data: items } = await db
     .from('inventory_items')
     .select('material_id, consumption, consumption_amount, materials(name, category, unit, price)')
     .in('record_id', recordIds);
 
-  // Aggregate by material
   const materialMap = new Map<number, { name: string; category: string; unit: string; price: number; total_consumption: number; total_amount: number }>();
   (items || []).forEach((item: Record<string, unknown>) => {
     const mid = item.material_id as number;
@@ -93,7 +100,6 @@ async function exportSummary(db: any, startDate: string, endDate: string) {
     d.total_amount += amount;
   });
 
-  // Generate CSV
   const rows = [['开始日期', '结束日期', '物料名称', '分类', '单位', '总消耗量', '单价(元)', '总消耗金额(元)']];
   materialMap.forEach((d) => {
     rows.push([
@@ -102,11 +108,16 @@ async function exportSummary(db: any, startDate: string, endDate: string) {
     ]);
   });
 
-  return rows.map(r => r.join(',')).join('\n') + '\n';
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [
+    { wch: 12 }, { wch: 12 }, { wch: 18 }, { wch: 10 },
+    { wch: 8 }, { wch: 10 }, { wch: 10 }, { wch: 14 },
+  ];
+  XLSX.utils.book_append_sheet(wb, ws, '消耗汇总');
 }
 
 // 日盘底表
-async function exportDaily(db: any, startDate: string, endDate: string) {
+async function buildDailySheet(wb: XLSX.WorkBook, db: any, startDate: string, endDate: string) {
   const { data: records } = await db
     .from('inventory_records')
     .select('id, record_date, total_amount, status')
@@ -116,7 +127,11 @@ async function exportDaily(db: any, startDate: string, endDate: string) {
     .lte('record_date', endDate)
     .order('record_date', { ascending: true });
 
-  if (!records || records.length === 0) return '暂无数据\n';
+  if (!records || records.length === 0) {
+    const ws = XLSX.utils.aoa_to_sheet([['暂无数据']]);
+    XLSX.utils.book_append_sheet(wb, ws, '日盘底表');
+    return;
+  }
 
   const recordIds = records.map((r: { id: number }) => r.id);
   const recordDateMap = new Map(records.map((r: { id: number; record_date: string }) => [r.id, r.record_date]));
@@ -136,8 +151,6 @@ async function exportDaily(db: any, startDate: string, endDate: string) {
     const cons = parseFloat((item.consumption as string) || '0');
     const amount = parseFloat((item.consumption_amount as string) || '0');
     const price = parseFloat((item.unit_price as string) || '0');
-
-    // 进货量 = 消耗量 + 期末库存 - 期初库存 (if consumption is calculated)
     const purchaseQty = Math.max(0, parseFloat((cons + qty - prevQty).toFixed(2)));
 
     rows.push([
@@ -147,12 +160,17 @@ async function exportDaily(db: any, startDate: string, endDate: string) {
     ]);
   });
 
-  return rows.map(r => r.join(',')).join('\n') + '\n';
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [
+    { wch: 12 }, { wch: 18 }, { wch: 10 }, { wch: 8 },
+    { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 },
+    { wch: 10 }, { wch: 14 },
+  ];
+  XLSX.utils.book_append_sheet(wb, ws, '日盘底表');
 }
 
 // 周盘底表（含损耗对比）
-async function exportWeekly(db: any, startDate: string, endDate: string) {
-  // Get weekly records in date range
+async function buildWeeklySheet(wb: XLSX.WorkBook, db: any, startDate: string, endDate: string) {
   const { data: records } = await db
     .from('inventory_records')
     .select('id, record_date, total_amount, status')
@@ -162,7 +180,11 @@ async function exportWeekly(db: any, startDate: string, endDate: string) {
     .lte('record_date', endDate)
     .order('record_date', { ascending: true });
 
-  if (!records || records.length === 0) return '暂无数据\n';
+  if (!records || records.length === 0) {
+    const ws = XLSX.utils.aoa_to_sheet([['暂无数据']]);
+    XLSX.utils.book_append_sheet(wb, ws, '周盘底表');
+    return;
+  }
 
   const rows = [['周次', '物料名称', '分类', '单位', '理论消耗', '实际消耗', '损耗量', '损耗金额(元)']];
 
@@ -173,7 +195,6 @@ async function exportWeekly(db: any, startDate: string, endDate: string) {
     const weekStartStr = startOfWeek.toISOString().split('T')[0];
     const weekLabel = `${weekStartStr}~${weekEndStr}`;
 
-    // Get daily records for this week
     const { data: dailyRecords } = await db
       .from('inventory_records')
       .select('id')
@@ -182,13 +203,11 @@ async function exportWeekly(db: any, startDate: string, endDate: string) {
       .gte('record_date', weekStartStr)
       .lte('record_date', weekEndStr);
 
-    // Get weekly items
     const { data: weeklyItems } = await db
       .from('inventory_items')
       .select('material_id, quantity, materials(name, category, unit, price)')
       .eq('record_id', record.id);
 
-    // Get daily items for consumption calculation
     let dailyConsumptionMap = new Map<number, number>();
     if (dailyRecords && dailyRecords.length > 0) {
       const dailyIds = dailyRecords.map((r: { id: number }) => r.id);
@@ -219,11 +238,16 @@ async function exportWeekly(db: any, startDate: string, endDate: string) {
     });
   }
 
-  return rows.map(r => r.join(',')).join('\n') + '\n';
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [
+    { wch: 22 }, { wch: 18 }, { wch: 10 }, { wch: 8 },
+    { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 14 },
+  ];
+  XLSX.utils.book_append_sheet(wb, ws, '周盘底表');
 }
 
 // 月盘底表
-async function exportMonthly(db: any, startDate: string, endDate: string) {
+async function buildMonthlySheet(wb: XLSX.WorkBook, db: any, startDate: string, endDate: string) {
   const { data: records } = await db
     .from('inventory_records')
     .select('id, record_date, total_amount, status')
@@ -233,7 +257,11 @@ async function exportMonthly(db: any, startDate: string, endDate: string) {
     .lte('record_date', endDate)
     .order('record_date', { ascending: true });
 
-  if (!records || records.length === 0) return '暂无数据\n';
+  if (!records || records.length === 0) {
+    const ws = XLSX.utils.aoa_to_sheet([['暂无数据']]);
+    XLSX.utils.book_append_sheet(wb, ws, '月盘底表');
+    return;
+  }
 
   const recordIds = records.map((r: { id: number }) => r.id);
   const recordDateMap = new Map(records.map((r: { id: number; record_date: string }) => [r.id, r.record_date]));
@@ -262,5 +290,11 @@ async function exportMonthly(db: any, startDate: string, endDate: string) {
     ]);
   });
 
-  return rows.map(r => r.join(',')).join('\n') + '\n';
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [
+    { wch: 12 }, { wch: 18 }, { wch: 10 }, { wch: 8 },
+    { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 },
+    { wch: 10 }, { wch: 14 },
+  ];
+  XLSX.utils.book_append_sheet(wb, ws, '月盘底表');
 }

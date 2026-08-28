@@ -83,7 +83,7 @@ export default function ReportsPage() {
       const blobUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = blobUrl;
-      a.download = `miiix_${exportType}_${startDate}_${endDate}.csv`;
+      a.download = `miiix_${exportType}_${startDate}_${endDate}.xlsx`;
       a.click();
       window.URL.revokeObjectURL(blobUrl);
     } catch {

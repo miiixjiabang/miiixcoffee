@@ -81,7 +81,7 @@ Page({
         return;
       }
 
-      const fileName = `Miiix_${exportType}_${startDate}_${endDate}.csv`;
+      const fileName = `Miiix_${exportType}_${startDate}_${endDate}.xlsx`;
       const fs = wx.getFileSystemManager();
       const savedPath = `${wx.env.USER_DATA_PATH}/${fileName}`;
       fs.saveFileSync(res.tempFilePath, savedPath);
@@ -92,7 +92,7 @@ Page({
           if (r.tapIndex === 0) {
             wx.openDocument({
               filePath: savedPath,
-              fileType: 'csv',
+              fileType: 'xlsx',
               success: () => console.log('打开成功'),
               fail: () => {
                 wx.showToast({ title: '打开失败', icon: 'none' });
