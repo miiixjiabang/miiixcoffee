@@ -17,9 +17,13 @@
 
   <!-- 导出按钮 -->
   <view class="export-section">
-    <button class="export-btn" bindtap="exportCSV" wx:if="{{summary.length > 0}}">
-      <text>📥 导出报表</text>
-    </button>
+    <view class="export-title">导出报表</view>
+    <view class="export-btns">
+      <button class="export-btn" bindtap="exportCSV" data-type="summary">消耗汇总</button>
+      <button class="export-btn" bindtap="exportCSV" data-type="daily">日盘底表</button>
+      <button class="export-btn" bindtap="exportCSV" data-type="weekly">周盘底表</button>
+      <button class="export-btn" bindtap="exportCSV" data-type="monthly">月盘底表</button>
+    </view>
   </view>
 
   <!-- 汇总表格 -->

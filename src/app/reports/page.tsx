@@ -67,6 +67,30 @@ export default function ReportsPage() {
     ? trend.filter(t => t.category === selectedCategory)
     : trend;
 
+  const exportCSV = async (exportType: string) => {
+    const token = getToken();
+    const url = `/api/reports/export?type=${exportType}&start_date=${startDate}&end_date=${endDate}`;
+    try {
+      const res = await fetch(url, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || '导出失败');
+        return;
+      }
+      const blob = await res.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `miiix_${exportType}_${startDate}_${endDate}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch {
+      alert('导出失败，请重试');
+    }
+  };
+
   // Calculate totals
   const totalAmount = summary.reduce((sum, s) => sum + s.total_amount, 0);
   const totalConsumption = summary.reduce((sum, s) => sum + s.total_consumption, 0);
@@ -122,13 +146,22 @@ export default function ReportsPage() {
             </div>
           </div>
           {summary.length > 0 && (
-            <button
-              onClick={exportCSV}
-              className="w-full mt-3 py-2.5 rounded-lg text-sm font-medium transition-opacity"
-              style={{ background: '#1A1A1A', color: '#fff' }}
-            >
-              导出 CSV
-            </button>
+            <div className="flex flex-col gap-2 mt-3">
+              <button
+                onClick={() => exportCSV('summary')}
+                className="w-full py-2.5 rounded-lg text-sm font-medium transition-opacity"
+                style={{ background: '#1A1A1A', color: '#fff' }}
+              >
+                导出消耗汇总
+              </button>
+              <button
+                onClick={() => exportCSV(type)}
+                className="w-full py-2.5 rounded-lg text-sm font-medium transition-opacity"
+                style={{ background: '#333', color: '#fff' }}
+              >
+                导出{type === 'daily' ? '日盘' : type === 'weekly' ? '周盘' : '月盘'}底表
+              </button>
+            </div>
           )}
         </div>
 

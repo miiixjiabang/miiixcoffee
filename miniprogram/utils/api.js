@@ -82,6 +82,7 @@ function getReports(params) {
 
 module.exports = {
   request,
+  baseUrl: app.globalData.baseUrl,
   getMaterials,
   getInventory,
   saveInventory,
