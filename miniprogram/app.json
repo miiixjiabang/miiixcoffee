@@ -30,7 +30,7 @@
       },
       {
         "pagePath": "pages/inventory/daily/daily",
-        "text": "日盘",
+        "text": "盘点",
         "iconPath": "assets/icon-daily.png",
         "selectedIconPath": "assets/icon-daily-active.png"
       },
