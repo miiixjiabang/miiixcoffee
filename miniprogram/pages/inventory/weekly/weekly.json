@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "周盘录入"
+  "navigationBarTitleText": "周盘录入",
+  "usingComponents": {
+    "inventory-form": "/components/inventory-form/inventory-form"
+  }
 }
