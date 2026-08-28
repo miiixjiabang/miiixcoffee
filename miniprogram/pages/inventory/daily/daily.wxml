@@ -1,4 +1,11 @@
 <view class="page">
+  <!-- 盘点类型切换 -->
+  <view class="tab-bar">
+    <view class="tab-item active" data-tab="daily" bindtap="switchTab">日盘</view>
+    <view class="tab-item" data-tab="weekly" bindtap="switchTab">周盘</view>
+    <view class="tab-item" data-tab="monthly" bindtap="switchTab">月盘</view>
+  </view>
+
   <inventory-form 
     type="daily" 
     title="日盘录入"

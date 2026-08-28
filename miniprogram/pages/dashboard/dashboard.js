@@ -61,5 +61,6 @@ Page({
   goToWeekly() { wx.navigateTo({ url: '/pages/inventory/weekly/weekly' }); },
   goToMonthly() { wx.navigateTo({ url: '/pages/inventory/monthly/monthly' }); },
   goToPurchases() { wx.switchTab({ url: '/pages/purchases/purchases' }); },
+  goToReports() { wx.switchTab({ url: '/pages/reports/reports' }); },
   goToPending() { wx.navigateTo({ url: '/pages/reports/reports?tab=pending' }); }
 });

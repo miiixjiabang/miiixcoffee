@@ -41,6 +41,12 @@
         "selectedIconPath": "assets/icon-purchase-active.png"
       },
       {
+        "pagePath": "pages/reports/reports",
+        "text": "报表",
+        "iconPath": "assets/icon-report.png",
+        "selectedIconPath": "assets/icon-report-active.png"
+      },
+      {
         "pagePath": "pages/alerts/alerts",
         "text": "预警",
         "iconPath": "assets/icon-alert.png",

@@ -38,6 +38,10 @@
       <text class="action-icon">🚚</text>
       <text class="action-text">进货</text>
     </view>
+    <view class="action-card" bindtap="goToReports">
+      <text class="action-icon">📊</text>
+      <text class="action-text">报表</text>
+    </view>
   </view>
 
   <!-- 今日统计 -->

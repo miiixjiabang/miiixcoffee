@@ -45,8 +45,8 @@
         <text class="trend-category">{{item.category}}</text>
       </view>
       <view class="trend-values">
-        <text wx:for="{{Object.keys(item.data)}}" wx:key="*this" class="trend-data">
-          {{item}}: {{item.data[item]}}
+        <text wx:for="{{Object.keys(item.data)}}" wx:for-item="key" wx:key="*this" class="trend-data">
+          {{key}}: {{item.data[key]}}
         </text>
       </view>
     </view>
