@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- 圆形背景 -->
+  <circle cx="100" cy="100" r="100" fill="#1A1A1A"/>
+  
+  <!-- 咖啡杯身 -->
+  <path d="M55 55 L60 145 Q60 155 75 155 L125 155 Q140 155 140 145 L145 55 Z" 
+        fill="white"/>
+  
+  <!-- 咖啡液面 -->
+  <rect x="63" y="70" width="74" height="55" rx="4" fill="#1A1A1A"/>
+  
+  <!-- 咖啡杯把手 -->
+  <path d="M145 80 Q185 80 185 115 Q185 145 140 135" 
+        fill="none" stroke="white" stroke-width="5" stroke-linecap="round"/>
+  
+  <!-- 杯盖 -->
+  <rect x="50" y="45" width="100" height="14" rx="5" fill="white"/>
+  
+  <!-- 杯盖小圆点 -->
+  <circle cx="100" cy="52" r="3" fill="#1A1A1A"/>
+  
+  <!-- 品牌名称 Miiix -->
+  <text x="100" y="135" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" 
+        font-size="22" font-weight="bold" fill="white" letter-spacing="2">MIIIX</text>
+</svg>
