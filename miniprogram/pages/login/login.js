@@ -8,6 +8,14 @@ Page({
     loading: false
   },
 
+  onLoad() {
+    // 检查是否已有有效 token，有则直接跳转首页
+    const app = getApp();
+    if (app.globalData.token) {
+      wx.switchTab({ url: '/pages/dashboard/dashboard' });
+    }
+  },
+
   onUsernameInput(e) {
     this.setData({ username: e.detail.value, error: '' });
   },

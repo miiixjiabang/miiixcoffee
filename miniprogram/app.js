@@ -13,7 +13,27 @@ App({
     if (token && user) {
       this.globalData.token = token;
       this.globalData.user = user;
+      // 验证 token 是否有效
+      this.checkSession(token);
     }
+  },
+
+  // 验证 token 是否有效
+  checkSession(token) {
+    wx.request({
+      url: this.globalData.baseUrl + '/api/auth/check',
+      method: 'GET',
+      header: { 'Authorization': 'Bearer ' + token },
+      fail: () => {
+        // 网络错误，不清除登录状态，下次再试
+      },
+      complete: (res) => {
+        if (res.statusCode !== 200 || !res.data?.valid) {
+          // token 无效，清除登录状态
+          this.logout();
+        }
+      }
+    });
   },
 
   // 登录
